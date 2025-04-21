@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}講師管理 | LibreChatユーザー管理{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>講師アカウント管理</h2>
+    <a href="{{ url_for('super_user.create_teacher') }}" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> 新規講師登録
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>名前</th>
+                        <th>メールアドレス</th>
+                        <th>プレフィックス</th>
+                        <th>最大生徒数</th>
+                        <th>作成日</th>
+                        <th>最終ログイン</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for teacher in teachers %}
+                    <tr>
+                        <td>{{ teacher.id }}</td>
+                        <td>{{ teacher.name }}</td>
+                        <td>{{ teacher.email }}</td>
+                        <td>{{ teacher.prefix }}</td>
+                        <td>{{ teacher.max_students }}</td>
+                        <td>{{ teacher.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>{{ teacher.last_login.strftime('%Y-%m-%d %H:%M') if teacher.last_login else '未ログイン' }}</td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a href="{{ url_for('super_user.edit_teacher', teacher_id=teacher.id) }}" class="btn btn-sm btn-outline-primary">編集</a>
+                                <button type="button" class="btn btn-sm btn-outline-danger" 
+                                        data-bs-toggle="modal" data-bs-target="#deleteModal{{ teacher.id }}">
+                                    削除
+                                </button>
+                            </div>
+                            
+                            <!-- 削除確認モーダル -->
+                            <div class="modal fade" id="deleteModal{{ teacher.id }}" tabindex="-1" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">講師アカウント削除の確認</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <p>講師「{{ teacher.name }}」のアカウントを削除しますか？</p>
+                                            <p class="text-danger">この操作は取り消せません。また、この講師が管理する全ての生徒アカウントも削除されます。</p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                                            <form action="{{ url_for('super_user.delete_teacher', teacher_id=teacher.id) }}" method="POST">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                                                <button type="submit" class="btn btn-danger">削除する</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="8" class="text-center">講師アカウントがありません</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

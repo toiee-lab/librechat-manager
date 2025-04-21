@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}講師情報編集 | LibreChatユーザー管理{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">講師情報編集</h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <strong>メールアドレス:</strong> {{ teacher.email }}<br>
+                    <strong>ユーザー名:</strong> {{ teacher.username }}<br>
+                    <strong>プレフィックス:</strong> {{ teacher.prefix }} (変更不可)
+                </div>
+                
+                <form method="POST">
+                    {{ form.csrf_token }}
+                    
+                    <div class="mb-3">
+                        {{ form.name.label(class="form-label") }}
+                        {{ form.name(class="form-control") }}
+                        {% if form.name.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.name.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.max_students.label(class="form-label") }}
+                        {{ form.max_students(class="form-control") }}
+                        {% if form.max_students.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.max_students.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">講師が作成できる最大生徒アカウント数</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.password.label(class="form-label") }}
+                        {{ form.password(class="form-control") }}
+                        {% if form.password.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.password.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">変更する場合のみ入力してください。空欄の場合は現在のパスワードが維持されます。</div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('super_user.list_teachers') }}" class="btn btn-secondary">キャンセル</a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

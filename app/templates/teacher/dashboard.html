@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}講師ダッシュボード | LibreChatユーザー管理{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2>講師ダッシュボード</h2>
+        <div class="alert alert-info">
+            <h4>ようこそ、{{ current_user.name }}さん</h4>
+            <p>LibreChatユーザー管理システムへようこそ。以下の生徒アカウント管理機能を利用できます。</p>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">生徒アカウント管理</h5>
+            </div>
+            <div class="card-body">
+                <p>登録生徒数: <strong>{{ students_count }}</strong> / {{ current_user.max_students }}</p>
+                <div class="d-grid">
+                    <a href="{{ url_for('teacher.list_students') }}" class="btn btn-outline-primary">生徒一覧を表示</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">アカウント一括作成</h5>
+            </div>
+            <div class="card-body">
+                <p>新しい生徒アカウントを一括作成します。</p>
+                <div class="d-grid">
+                    <a href="{{ url_for('teacher.bulk_create_students') }}" class="btn btn-outline-success">アカウント作成</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0">アカウントリセット</h5>
+            </div>
+            <div class="card-body">
+                <p>全生徒アカウントを削除して再作成します。</p>
+                <div class="d-grid">
+                    <a href="{{ url_for('teacher.reset_students') }}" class="btn btn-outline-danger">アカウントリセット</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">アカウント情報</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-3">メールアドレス</dt>
+                    <dd class="col-sm-9">{{ current_user.email }}</dd>
+                    
+                    <dt class="col-sm-3">ユーザー名</dt>
+                    <dd class="col-sm-9">{{ current_user.username }}</dd>
+                    
+                    <dt class="col-sm-3">氏名</dt>
+                    <dd class="col-sm-9">{{ current_user.name }}</dd>
+                    
+                    <dt class="col-sm-3">プレフィックス</dt>
+                    <dd class="col-sm-9">{{ current_user.prefix }}</dd>
+                    
+                    <dt class="col-sm-3">最大生徒数</dt>
+                    <dd class="col-sm-9">{{ current_user.max_students }}</dd>
+                    
+                    <dt class="col-sm-3">作成日</dt>
+                    <dd class="col-sm-9">{{ current_user.created_at.strftime('%Y-%m-%d %H:%M') }}</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

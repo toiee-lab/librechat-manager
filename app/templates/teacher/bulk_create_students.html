@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}生徒アカウント一括作成 | LibreChatユーザー管理{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">生徒アカウント一括作成</h4>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <p>現在の生徒アカウント数: <strong>{{ (current_user.students.count()) }}</strong> / {{ current_user.max_students }}</p>
+                    <p>アカウントは <strong>{{ current_user.prefix }}XX@toiee.jp</strong> の形式で作成されます。</p>
+                </div>
+                
+                <form method="POST">
+                    {{ form.csrf_token }}
+                    
+                    <div class="mb-3">
+                        {{ form.count.label(class="form-label") }}
+                        {{ form.count(class="form-control") }}
+                        {% if form.count.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.count.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">作成するアカウント数（1〜20）を指定してください。</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.password.label(class="form-label") }}
+                        {{ form.password(class="form-control") }}
+                        {% if form.password.errors %}
+                            <div class="invalid-feedback d-block">
+                                {% for error in form.password.errors %}
+                                    {{ error }}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        <div class="form-text">全アカウント共通のパスワードを設定します。空欄の場合はランダムなパスワードが生成されます。</div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ url_for('teacher.dashboard') }}" class="btn btn-secondary">キャンセル</a>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

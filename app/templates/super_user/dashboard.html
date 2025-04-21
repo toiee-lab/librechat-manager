@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}管理者ダッシュボード | LibreChatユーザー管理{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2>スーパーユーザーダッシュボード</h2>
+        <div class="alert alert-info">
+            <h4>ようこそ、{{ current_user.username }}さん</h4>
+            <p>LibreChatユーザー管理システムへようこそ。以下の管理機能を利用できます。</p>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">講師管理</h5>
+            </div>
+            <div class="card-body">
+                <p>登録講師数: <strong>{{ teachers_count }}</strong></p>
+                <div class="d-grid">
+                    <a href="{{ url_for('super_user.list_teachers') }}" class="btn btn-outline-primary">講師一覧を表示</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">講師の追加</h5>
+            </div>
+            <div class="card-body">
+                <p>新しい講師アカウントを作成します。</p>
+                <div class="d-grid">
+                    <a href="{{ url_for('super_user.create_teacher') }}" class="btn btn-outline-success">講師を追加</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">システムログ</h5>
+            </div>
+            <div class="card-body">
+                <p>システム操作のログを確認します。</p>
+                <div class="d-grid">
+                    <a href="{{ url_for('system.system_logs') }}" class="btn btn-outline-info">ログを表示</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

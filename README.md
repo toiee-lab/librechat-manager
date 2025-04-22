@@ -1,4 +1,4 @@
-# LibreChatユーザー管理システム
+# LibreChatユーザー管理システム (LFT)
 
 LibreChatを活用したAI授業・ワークショップでのユーザーアカウント管理を効率化するためのWebアプリケーションです。
 
@@ -17,7 +17,7 @@ LibreChatを活用したAI授業・ワークショップでのユーザーアカ
 ## 技術スタック
 
 - **バックエンド**: Python 3.9+、Flask
-- **フロントエンド**: Bootstrap 5、Jinja2テンプレート
+- **フロントエンド**: TailwindCSS、Jinja2テンプレート
 - **データベース**: SQLite3（SQLAlchemy ORM）
 - **認証**: Flask-Login
 - **セキュリティ**: Flask-WTF（CSRF保護）
@@ -26,13 +26,14 @@ LibreChatを活用したAI授業・ワークショップでのユーザーアカ
 
 ### 前提条件
 - Python 3.9以上
-- LibreChatがインストールされたサーバー
+- LibreChatがインストールされた同一サーバー
+- Nginx（リバースプロキシ用）
 
 ### セットアップ
 1. リポジトリをクローン
    ```
-   git clone https://github.com/yourusername/librechat-user-manager.git
-   cd librechat-user-manager
+   git clone https://github.com/yourusername/lft.git
+   cd lft
    ```
 
 2. 仮想環境を作成し、依存関係をインストール
@@ -46,7 +47,13 @@ LibreChatを活用したAI授業・ワークショップでのユーザーアカ
    ```
    cp .env.example .env
    ```
-   `.env`ファイルを編集し、必要な設定（特にLIBRECHAT_ROOTのパス）を行います。
+   `.env`ファイルを編集し、以下の設定を行います：
+   ```
+   SECRET_KEY=安全な乱数値を設定
+   LIBRECHAT_ROOT=/path/to/librechat  # LibreChatのルートディレクトリ
+   LIBRECHAT_CONTAINER=LibreChat      # コンテナ名（デフォルトはLibreChat）
+   LIBRECHAT_WORK_DIR=.               # docker-compose.ymlがある作業ディレクトリ
+   ```
 
 4. データベースを初期化
    ```
@@ -58,42 +65,80 @@ LibreChatを活用したAI授業・ワークショップでのユーザーアカ
    flask create-super-user
    ```
 
-6. アプリケーションを起動
-   ```
-   flask run
-   ```
-
 ## 本番環境へのデプロイ
 
-本番環境では、以下の設定を推奨します：
+### Gunicornの設定
+```
+gunicorn -w 4 -b 127.0.0.1:8000 "run:app"
+```
 
-1. Gunicorn + Nginxを使用
-   ```
-   gunicorn -w 4 -b 127.0.0.1:8000 "run:app"
-   ```
+### systemdサービスとして設定
+```
+[Unit]
+Description=LibreChat User Manager
+After=network.target
 
-2. systemdサービスとして設定
-   ```
-   [Unit]
-   Description=LibreChat User Manager
-   After=network.target
+[Service]
+User=yourusername
+WorkingDirectory=/path/to/lft
+Environment="PATH=/path/to/lft/venv/bin"
+ExecStart=/path/to/lft/venv/bin/gunicorn -w 4 -b 127.0.0.1:8000 "run:app"
+Restart=always
 
-   [Service]
-   User=yourusername
-   WorkingDirectory=/path/to/librechat-user-manager
-   Environment="PATH=/path/to/librechat-user-manager/venv/bin"
-   ExecStart=/path/to/librechat-user-manager/venv/bin/gunicorn -w 4 -b 127.0.0.1:8000 "run:app"
-   Restart=always
+[Install]
+WantedBy=multi-user.target
+```
 
-   [Install]
-   WantedBy=multi-user.target
-   ```
+### Nginxリバースプロキシ設定
+
+LibreChatと同じサーバーで運用する場合のNginx設定例：
+
+```
+server {
+    listen 80;
+    server_name your-domain.com;
+
+    # LibreChatへのプロキシ設定
+    location / {
+        proxy_pass http://localhost:3080;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+
+    # LFT (LibreChatユーザー管理システム)へのプロキシ設定
+    location /lft/ {
+        proxy_pass http://localhost:8000/;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+```
+
+SSL設定を追加する場合：
+```
+server {
+    listen 443 ssl;
+    server_name your-domain.com;
+
+    ssl_certificate /path/to/cert.pem;
+    ssl_certificate_key /path/to/key.pem;
+
+    # 以下、上記と同じproxy_pass設定
+    ...
+}
+```
 
 ## 使用方法
 
-1. スーパーユーザーでログイン
+1. スーパーユーザーでログイン（/lft/admin/login）
 2. 講師アカウントを作成（プレフィックスを設定）
-3. 講師アカウントでログインし、生徒アカウントを作成
+3. 講師アカウントでログイン（/lft/login）し、生徒アカウントを作成
 4. 必要に応じて生徒アカウントをリセット
 
 ## ライセンス

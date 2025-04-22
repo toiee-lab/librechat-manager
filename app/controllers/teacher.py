@@ -84,7 +84,7 @@ def bulk_create_students():
         # フォームデータを解析
         prefix = current_user.prefix
         count = form.count.data
-        password = form.password.data or generate_password()
+        common_password = form.password.data
         
         created_students = []
         librechat = LibreChatService(
@@ -105,6 +105,9 @@ def bulk_create_students():
             email = f"{prefix}{i:02d}@toiee.jp"
             username = f"{prefix}{i:02d}"
             name = f"Student {i:02d}"
+            
+            # 各ユーザーごとに個別のランダムパスワードを生成
+            password = common_password or generate_password()
             
             # 既存アカウントを確認
             existing = Student.query.filter_by(email=email).first()

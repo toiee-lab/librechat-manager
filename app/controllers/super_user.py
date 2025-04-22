@@ -115,7 +115,11 @@ def create_teacher():
         
         # LibreChatでもユーザーを作成
         try:
-            librechat_service = LibreChatService(current_app.config['LIBRECHAT_ROOT'])
+            librechat_service = LibreChatService(
+                current_app.config['LIBRECHAT_ROOT'],
+                container_name=current_app.config['LIBRECHAT_CONTAINER'],
+                work_dir=current_app.config['LIBRECHAT_WORK_DIR']
+            )
             librechat_result = librechat_service.create_user(
                 email=teacher.email,
                 username=teacher.username,
@@ -181,8 +185,14 @@ def delete_teacher(teacher_id):
     
     # 講師が作成した生徒一覧を取得
     students = teacher.students.all()
-    librechat_service = LibreChatService(current_app.config['LIBRECHAT_ROOT'])
     deleted_students = []
+    
+    # LibreChatサービスのインスタンス作成
+    librechat_service = LibreChatService(
+        current_app.config['LIBRECHAT_ROOT'],
+        container_name=current_app.config['LIBRECHAT_CONTAINER'],
+        work_dir=current_app.config['LIBRECHAT_WORK_DIR']
+    )
     
     # 各生徒のLibreChatユーザーを削除
     for student in students:
@@ -196,6 +206,11 @@ def delete_teacher(teacher_id):
     
     # 講師のLibreChatユーザーを削除
     try:
+        librechat_service = LibreChatService(
+            current_app.config['LIBRECHAT_ROOT'],
+            container_name=current_app.config['LIBRECHAT_CONTAINER'],
+            work_dir=current_app.config['LIBRECHAT_WORK_DIR']
+        )
         librechat_result = librechat_service.delete_user(email=teacher_email)
         teacher_librechat_status = "成功" if librechat_result.returncode == 0 else f"失敗 ({librechat_result.stderr})"
     except Exception as e:

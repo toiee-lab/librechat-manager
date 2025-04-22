@@ -87,7 +87,11 @@ def bulk_create_students():
         password = form.password.data or generate_password()
         
         created_students = []
-        librechat = LibreChatService(current_app.config['LIBRECHAT_ROOT'])
+        librechat = LibreChatService(
+            current_app.config['LIBRECHAT_ROOT'],
+            container_name=current_app.config['LIBRECHAT_CONTAINER'],
+            work_dir=current_app.config['LIBRECHAT_WORK_DIR']
+        )
         
         # 既存の学生数をチェック
         existing_count = Student.query.filter_by(teacher_id=current_user.id).count()
@@ -153,7 +157,11 @@ def reset_students():
             flash('確認チェックが必要です', 'warning')
             return redirect(url_for('teacher.reset_students'))
         
-        librechat = LibreChatService(current_app.config['LIBRECHAT_ROOT'])
+        librechat = LibreChatService(
+            current_app.config['LIBRECHAT_ROOT'],
+            container_name=current_app.config['LIBRECHAT_CONTAINER'],
+            work_dir=current_app.config['LIBRECHAT_WORK_DIR']
+        )
         students = Student.query.filter_by(teacher_id=current_user.id).all()
         
         # 既存アカウントを削除

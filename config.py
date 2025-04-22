@@ -14,3 +14,5 @@ class Config:
     
     # LibreChat設定
     LIBRECHAT_ROOT = os.environ.get('LIBRECHAT_ROOT') or '/path/to/librechat'
+    LIBRECHAT_CONTAINER = os.environ.get('LIBRECHAT_CONTAINER') or 'LibreChat'
+    LIBRECHAT_WORK_DIR = os.environ.get('LIBRECHAT_WORK_DIR') or '.'

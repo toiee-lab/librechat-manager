@@ -4,30 +4,61 @@ import json
 import re
 
 class LibreChatService:
-    def __init__(self, librechat_root):
+    def __init__(self, librechat_root, container_name="LibreChat", work_dir=".."):
         self.librechat_root = librechat_root
+        self.container_name = container_name
+        self.work_dir = work_dir
     
     def create_user(self, email, username, name, password):
         """ユーザーを作成する"""
         # コマンドインジェクション対策のためにshlex.quoteを使用
-        cmd = f"docker exec -it LibreChat-API /bin/sh -c \"cd .. && echo y | npm run create-user {shlex.quote(email)} {shlex.quote(username)} {shlex.quote(name)} {shlex.quote(password)} --email-verified=true\""
-        return self._run_command(cmd)
+        command_parts = [
+            "docker", "exec", "-i", self.container_name, "/bin/sh", "-c",
+            f"cd {self.work_dir} && echo y | npm run create-user {shlex.quote(email)} {shlex.quote(username)} {shlex.quote(name)} {shlex.quote(password)} --email-verified=true"
+        ]
+        print(f"DEBUG - コマンド配列: {command_parts}")
+        
+        # 通常のシェルコマンド形式
+        cmd = f"docker exec -i {self.container_name} /bin/sh -c \"cd {self.work_dir} && echo y | npm run create-user {shlex.quote(email)} {shlex.quote(username)} {shlex.quote(name)} {shlex.quote(password)} --email-verified=true\""
+        
+        # 直接実行を試みる（デバッグのため）
+        try:
+            print(f"DEBUG - 直接実行試行: {' '.join(command_parts)}")
+            direct_result = subprocess.run(command_parts, cwd=self.librechat_root, capture_output=True, text=True)
+            print(f"DEBUG - 直接実行結果: {direct_result.returncode}")
+            if direct_result.stdout:
+                print(f"DEBUG - 直接実行標準出力: {direct_result.stdout[:200]}...")
+            if direct_result.stderr:
+                print(f"DEBUG - 直接実行エラー: {direct_result.stderr[:200]}...")
+            return direct_result
+        except Exception as e:
+            print(f"DEBUG - 直接実行エラー例外: {str(e)}")
+            # 失敗したら通常の方法にフォールバック
+            return self._run_command(cmd)
     
     def delete_user(self, email):
         """ユーザーを削除する"""
-        cmd = f"docker exec -it LibreChat-API /bin/sh -c \"cd .. && echo y | npm run delete-user {shlex.quote(email)}\""
+        cmd = f"docker exec -i {self.container_name} /bin/sh -c \"cd {self.work_dir} && echo y | npm run delete-user {shlex.quote(email)}\""
         return self._run_command(cmd)
     
     def list_users(self):
         """ユーザー一覧を取得する"""
-        cmd = "docker exec -it LibreChat-API /bin/sh -c \"cd .. && npm run list-users\""
+        cmd = f"docker exec -i {self.container_name} /bin/sh -c \"cd {self.work_dir} && npm run list-users\""
         result = self._run_command(cmd)
         return self._parse_user_list(result.stdout) if result.returncode == 0 else []
     
     def _run_command(self, cmd):
         """コマンドを実行する"""
-        return subprocess.run(cmd, shell=True, cwd=self.librechat_root, 
-                             capture_output=True, text=True)
+        print(f"DEBUG - 実行コマンド: {cmd}")
+        print(f"DEBUG - 作業ディレクトリ: {self.librechat_root}")
+        result = subprocess.run(cmd, shell=True, cwd=self.librechat_root, 
+                              capture_output=True, text=True)
+        print(f"DEBUG - 戻り値: {result.returncode}")
+        if result.stdout:
+            print(f"DEBUG - 標準出力: {result.stdout[:200]}...")
+        if result.stderr:
+            print(f"DEBUG - エラー出力: {result.stderr[:200]}...")
+        return result
     
     def _parse_user_list(self, output):
         """コマンド出力からユーザー一覧を解析する"""

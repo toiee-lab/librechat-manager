@@ -1,4 +1,4 @@
-from flask import Flask, redirect, url_for
+from flask import Flask, redirect, url_for, request
 from flask_wtf.csrf import CSRFProtect
 
 from app.models import db, login_manager
@@ -23,6 +23,13 @@ def create_app(config_class):
     app.register_blueprint(super_user_bp, url_prefix='/admin')
     app.register_blueprint(teacher_bp, url_prefix='/teacher')
     app.register_blueprint(system_bp)
+    
+    # アプリケーションルートパスの設定
+    if app.config['APPLICATION_ROOT'] and app.config['APPLICATION_ROOT'] != '/':
+        # サブパスURLの生成をサポートするためのURLプロセッサ
+        @app.context_processor
+        def inject_url_root():
+            return {'url_root': app.config['APPLICATION_ROOT']}
     
     # ホームページルート
     @app.route('/')

@@ -12,6 +12,9 @@ class Config:
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or 'sqlite:///app.db'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
+    # アプリケーションルートパス設定（サブフォルダデプロイメント用）
+    APPLICATION_ROOT = os.environ.get('APPLICATION_ROOT') or '/'
+    
     # LibreChat設定
     LIBRECHAT_ROOT = os.environ.get('LIBRECHAT_ROOT') or '/path/to/librechat'
     LIBRECHAT_CONTAINER = os.environ.get('LIBRECHAT_CONTAINER') or 'LibreChat'

@@ -3,65 +3,78 @@
 {% block title %}講師管理 | LibreChatユーザー管理{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h2>講師アカウント管理</h2>
-    <a href="{{ url_for('super_user.create_teacher') }}" class="btn btn-primary">
-        <i class="bi bi-plus-circle"></i> 新規講師登録
+<div class="flex flex-col md:flex-row justify-between items-center mb-6">
+    <h2 class="text-2xl font-medium text-dark mb-4 md:mb-0">講師アカウント管理</h2>
+    <a href="{{ url_for('super_user.create_teacher') }}" class="flex items-center px-4 py-2 bg-primary text-white hover:bg-primary/90 rounded-full transition duration-200 text-sm">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+        </svg>
+        新規講師登録
     </a>
 </div>
 
 <div class="card">
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-striped">
+    <div class="p-6">
+        <div class="overflow-x-auto">
+            <table class="w-full table-auto">
                 <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>名前</th>
-                        <th>メールアドレス</th>
-                        <th>プレフィックス</th>
-                        <th>最大生徒数</th>
-                        <th>作成日</th>
-                        <th>最終ログイン</th>
-                        <th>操作</th>
+                        <th class="px-4 py-3 text-left text-sm font-medium text-secondary border-b border-subtle">ID</th>
+                        <th class="px-4 py-3 text-left text-sm font-medium text-secondary border-b border-subtle">名前</th>
+                        <th class="px-4 py-3 text-left text-sm font-medium text-secondary border-b border-subtle">メールアドレス</th>
+                        <th class="px-4 py-3 text-left text-sm font-medium text-secondary border-b border-subtle">プレフィックス</th>
+                        <th class="px-4 py-3 text-left text-sm font-medium text-secondary border-b border-subtle">最大生徒数</th>
+                        <th class="px-4 py-3 text-left text-sm font-medium text-secondary border-b border-subtle">作成日</th>
+                        <th class="px-4 py-3 text-left text-sm font-medium text-secondary border-b border-subtle">最終ログイン</th>
+                        <th class="px-4 py-3 text-left text-sm font-medium text-secondary border-b border-subtle">操作</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for teacher in teachers %}
-                    <tr>
-                        <td>{{ teacher.id }}</td>
-                        <td>{{ teacher.name }}</td>
-                        <td>{{ teacher.email }}</td>
-                        <td>{{ teacher.prefix }}</td>
-                        <td>{{ teacher.max_students }}</td>
-                        <td>{{ teacher.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
-                        <td>{{ teacher.last_login.strftime('%Y-%m-%d %H:%M') if teacher.last_login else '未ログイン' }}</td>
-                        <td>
-                            <div class="btn-group" role="group">
-                                <a href="{{ url_for('super_user.edit_teacher', teacher_id=teacher.id) }}" class="btn btn-sm btn-outline-primary">編集</a>
-                                <button type="button" class="btn btn-sm btn-outline-danger" 
-                                        data-bs-toggle="modal" data-bs-target="#deleteModal{{ teacher.id }}">
+                    <tr class="hover:bg-light">
+                        <td class="px-4 py-3 border-b border-subtle">{{ teacher.id }}</td>
+                        <td class="px-4 py-3 border-b border-subtle">{{ teacher.name }}</td>
+                        <td class="px-4 py-3 border-b border-subtle">{{ teacher.email }}</td>
+                        <td class="px-4 py-3 border-b border-subtle">{{ teacher.prefix }}</td>
+                        <td class="px-4 py-3 border-b border-subtle">{{ teacher.max_students }}</td>
+                        <td class="px-4 py-3 border-b border-subtle">{{ teacher.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td class="px-4 py-3 border-b border-subtle">{{ teacher.last_login.strftime('%Y-%m-%d %H:%M') if teacher.last_login else '未ログイン' }}</td>
+                        <td class="px-4 py-3 border-b border-subtle">
+                            <div class="flex space-x-2">
+                                <a href="{{ url_for('super_user.edit_teacher', teacher_id=teacher.id) }}" class="px-3 py-1.5 text-xs border border-primary text-primary hover:bg-primary hover:text-white rounded-full transition duration-200">編集</a>
+                                <button type="button" class="px-3 py-1.5 text-xs border border-[#ff3b30] text-[#ff3b30] hover:bg-[#ff3b30] hover:text-white rounded-full transition duration-200"
+                                        onclick="document.getElementById('deleteModal{{ teacher.id }}').classList.remove('hidden')">
                                     削除
                                 </button>
                             </div>
                             
                             <!-- 削除確認モーダル -->
-                            <div class="modal fade" id="deleteModal{{ teacher.id }}" tabindex="-1" aria-hidden="true">
-                                <div class="modal-dialog">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title">講師アカウント削除の確認</h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            <div id="deleteModal{{ teacher.id }}" class="hidden modal-backdrop">
+                                <div class="modal-content">
+                                    <div class="flex flex-col">
+                                        <div class="flex justify-between items-center border-b border-subtle p-4">
+                                            <h3 class="text-lg font-medium text-dark">講師アカウント削除の確認</h3>
+                                            <button type="button" class="text-secondary hover:text-dark transition-colors duration-200"
+                                                    onclick="document.getElementById('deleteModal{{ teacher.id }}').classList.add('hidden')">
+                                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"></path>
+                                                </svg>
+                                            </button>
                                         </div>
-                                        <div class="modal-body">
-                                            <p>講師「{{ teacher.name }}」のアカウントを削除しますか？</p>
-                                            <p class="text-danger">この操作は取り消せません。また、この講師が管理する全ての生徒アカウントも削除されます。</p>
+                                        <div class="p-5">
+                                            <p class="mb-3 text-dark">講師「{{ teacher.name }}」のアカウントを削除しますか？</p>
+                                            <p class="text-[#ff3b30] text-sm">この操作は取り消せません。また、この講師が管理する全ての生徒アカウントも削除されます。</p>
                                         </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                                        <div class="flex justify-end space-x-3 p-4 bg-light border-t border-subtle">
+                                            <button type="button" class="px-4 py-2 bg-white border border-subtle text-dark rounded-full hover:bg-subtle/50 transition duration-200 text-sm"
+                                                    onclick="document.getElementById('deleteModal{{ teacher.id }}').classList.add('hidden')">
+                                                キャンセル
+                                            </button>
                                             <form action="{{ url_for('super_user.delete_teacher', teacher_id=teacher.id) }}" method="POST">
                                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
-                                                <button type="submit" class="btn btn-danger">削除する</button>
+                                                <button type="submit" class="px-4 py-2 bg-[#ff3b30] text-white rounded-full hover:bg-[#ff3b30]/90 transition duration-200 text-sm">
+                                                    削除する
+                                                </button>
                                             </form>
                                         </div>
                                     </div>
@@ -71,7 +84,7 @@
                     </tr>
                     {% else %}
                     <tr>
-                        <td colspan="8" class="text-center">講師アカウントがありません</td>
+                        <td colspan="8" class="px-4 py-6 text-center text-secondary">講師アカウントがありません</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -79,4 +92,16 @@
         </div>
     </div>
 </div>
+
+<script>
+    // モーダルの外側をクリックした時にモーダルを閉じる
+    window.onclick = function(event) {
+        {% for teacher in teachers %}
+        const modal{{ teacher.id }} = document.getElementById('deleteModal{{ teacher.id }}');
+        if (event.target == modal{{ teacher.id }}) {
+            modal{{ teacher.id }}.classList.add('hidden');
+        }
+        {% endfor %}
+    }
+</script>
 {% endblock %}

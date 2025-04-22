@@ -1,14 +1,16 @@
 from app import create_app
 from app.models import db
 from config import Config
+from flask import Flask, redirect, url_for
 
 app = create_app(Config)
 
 @app.cli.command('create-db')
 def create_db():
     """データベーステーブルを作成"""
-    db.create_all()
-    print('データベーステーブルを作成しました')
+    with app.app_context():
+        db.create_all()
+        print('データベーステーブルを作成しました')
 
 @app.cli.command('create-super-user')
 def create_super_user():
@@ -26,8 +28,9 @@ def create_super_user():
     )
     super_user.set_password(password)
     
-    db.session.add(super_user)
-    db.session.commit()
+    with app.app_context():
+        db.session.add(super_user)
+        db.session.commit()
     
     print(f'スーパーユーザー {username} を作成しました')
 

@@ -10,17 +10,17 @@ class LibreChatService:
     def create_user(self, email, username, name, password):
         """ユーザーを作成する"""
         # コマンドインジェクション対策のためにshlex.quoteを使用
-        cmd = f"npm run create-user {shlex.quote(email)} {shlex.quote(username)} {shlex.quote(name)} {shlex.quote(password)} --email-verified=true"
+        cmd = f"docker exec -it LibreChat-API /bin/sh -c \"cd .. && echo y | npm run create-user {shlex.quote(email)} {shlex.quote(username)} {shlex.quote(name)} {shlex.quote(password)} --email-verified=true\""
         return self._run_command(cmd)
     
     def delete_user(self, email):
         """ユーザーを削除する"""
-        cmd = f"npm run delete-user {shlex.quote(email)}"
+        cmd = f"docker exec -it LibreChat-API /bin/sh -c \"cd .. && echo y | npm run delete-user {shlex.quote(email)}\""
         return self._run_command(cmd)
     
     def list_users(self):
         """ユーザー一覧を取得する"""
-        cmd = "npm run list-users"
+        cmd = "docker exec -it LibreChat-API /bin/sh -c \"cd .. && npm run list-users\""
         result = self._run_command(cmd)
         return self._parse_user_list(result.stdout) if result.returncode == 0 else []
     

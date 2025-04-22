@@ -1,15 +1,15 @@
 {% extends "base.html" %}
 
-{% block title %}講師ログイン | LibreChatユーザー管理{% endblock %}
+{% block title %}管理者ログイン | LibreChatユーザー管理{% endblock %}
 
 {% block content %}
 <div class="flex justify-center mt-12">
     <div class="w-full max-w-md">
         <div class="bg-white rounded-xl border border-subtle overflow-hidden">
             <div class="p-8">
-                <h3 class="text-dark font-medium text-2xl mb-3">講師ログイン</h3>
+                <h3 class="text-dark font-medium text-2xl mb-3">管理者ログイン</h3>
                 <p class="text-secondary text-sm mb-8">
-                    講師専用ログインページです。管理者アカウントは<a href="{{ url_for('auth.admin_login') }}" class="text-primary hover:text-primary/80 transition-colors duration-200">こちら</a>からログインしてください。
+                    管理者専用ログインページです。講師アカウントは<a href="{{ url_for('auth.login') }}" class="text-primary hover:text-primary/80 transition-colors duration-200">こちら</a>からログインしてください。
                 </p>
                 <form method="POST">
                     {{ form.csrf_token }}

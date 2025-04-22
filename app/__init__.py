@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, redirect, url_for
 from flask_wtf.csrf import CSRFProtect
 
 from app.models import db, login_manager
@@ -27,6 +27,12 @@ def create_app(config_class):
     # ホームページルート
     @app.route('/')
     def index():
+        # デフォルトでは講師ログインページにリダイレクト
         return redirect(url_for('auth.login'))
+        
+    @app.route('/admin')
+    def admin():
+        # 管理者ページのルートは管理者ログインにリダイレクト
+        return redirect(url_for('auth.admin_login'))
     
     return app

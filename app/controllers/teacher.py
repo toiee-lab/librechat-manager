@@ -20,9 +20,31 @@ teacher_bp = Blueprint('teacher', __name__)
 def teacher_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if not current_user.is_authenticated or current_user.user_type != UserType.TEACHER:
-            flash('この操作には講師権限が必要です', 'danger')
+        # デバッグ情報をログに出力
+        print(f"DEBUG - 認証状態: {current_user.is_authenticated}")
+        
+        if not current_user.is_authenticated:
+            flash('ログインが必要です', 'danger')
             return redirect(url_for('auth.login'))
+        
+        # user_typeが取得できるか確認
+        try:
+            from app.models.user import Teacher
+            # インスタンスの型を直接チェック
+            is_teacher = isinstance(current_user, Teacher)
+            print(f"DEBUG - ユーザークラス: {current_user.__class__.__name__}")
+            print(f"DEBUG - Teacher型チェック: {is_teacher}")
+            
+            if not is_teacher:
+                print(f"DEBUG - ユーザータイプ比較失敗")
+                flash('この操作には講師権限が必要です', 'danger')
+                return redirect(url_for('auth.login'))
+                
+        except Exception as e:
+            print(f"DEBUG - 例外発生: {str(e)}")
+            flash('アクセス権限の確認中にエラーが発生しました', 'danger')
+            return redirect(url_for('auth.login'))
+            
         return f(*args, **kwargs)
     return decorated_function
 

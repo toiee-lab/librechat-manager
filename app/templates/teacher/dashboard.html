@@ -3,86 +3,117 @@
 {% block title %}講師ダッシュボード | LibreChatユーザー管理{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-12">
-        <h2>講師ダッシュボード</h2>
-        <div class="alert alert-info">
-            <h4>ようこそ、{{ current_user.name }}さん</h4>
-            <p>LibreChatユーザー管理システムへようこそ。以下の生徒アカウント管理機能を利用できます。</p>
+<div>
+    <h2 class="text-2xl font-medium text-dark mb-6">講師ダッシュボード</h2>
+    
+    <div class="bg-light border border-subtle p-5 mb-8 rounded-lg">
+        <h4 class="font-medium text-lg mb-2 text-dark">ようこそ、{{ current_user.name }}さん</h4>
+        <p class="text-secondary">LibreChatユーザー管理システムへようこそ。以下の生徒アカウント管理機能を利用できます。</p>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="card dashboard-card">
+        <div class="p-6 border-b border-subtle">
+            <div class="flex items-center space-x-3">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+                <h5 class="text-dark font-medium text-lg">生徒アカウント管理</h5>
+            </div>
+        </div>
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-5">
+                <p class="text-secondary">登録生徒数:</p>
+                <div class="flex items-center">
+                    <span class="bg-light text-dark font-medium px-3 py-1 rounded-full border border-subtle text-sm">
+                        {{ students_count }} / {{ current_user.max_students }}
+                    </span>
+                </div>
+            </div>
+            <a href="{{ url_for('teacher.list_students') }}" 
+               class="block w-full text-center bg-white border border-primary text-primary hover:bg-primary hover:text-white font-medium py-2 px-4 rounded-full transition duration-200 text-sm">
+                生徒一覧を表示
+            </a>
+        </div>
+    </div>
+    
+    <div class="card dashboard-card">
+        <div class="p-6 border-b border-subtle">
+            <div class="flex items-center space-x-3">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-[#34c759]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <h5 class="text-dark font-medium text-lg">アカウント一括作成</h5>
+            </div>
+        </div>
+        <div class="p-6">
+            <p class="text-secondary mb-5">新しい生徒アカウントを一括作成します。</p>
+            <a href="{{ url_for('teacher.bulk_create_students') }}" 
+               class="block w-full text-center bg-white border border-[#34c759] text-[#34c759] hover:bg-[#34c759] hover:text-white font-medium py-2 px-4 rounded-full transition duration-200 text-sm">
+                アカウント作成
+            </a>
+        </div>
+    </div>
+    
+    <div class="card dashboard-card">
+        <div class="p-6 border-b border-subtle">
+            <div class="flex items-center space-x-3">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-[#ff3b30]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                <h5 class="text-dark font-medium text-lg">アカウントリセット</h5>
+            </div>
+        </div>
+        <div class="p-6">
+            <p class="text-secondary mb-5">全生徒アカウントを削除して再作成します。</p>
+            <a href="{{ url_for('teacher.reset_students') }}" 
+               class="block w-full text-center bg-white border border-[#ff3b30] text-[#ff3b30] hover:bg-[#ff3b30] hover:text-white font-medium py-2 px-4 rounded-full transition duration-200 text-sm">
+                アカウントリセット
+            </a>
         </div>
     </div>
 </div>
 
-<div class="row mt-4">
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0">生徒アカウント管理</h5>
-            </div>
-            <div class="card-body">
-                <p>登録生徒数: <strong>{{ students_count }}</strong> / {{ current_user.max_students }}</p>
-                <div class="d-grid">
-                    <a href="{{ url_for('teacher.list_students') }}" class="btn btn-outline-primary">生徒一覧を表示</a>
-                </div>
-            </div>
+<div class="card mb-6">
+    <div class="p-6 border-b border-subtle">
+        <div class="flex items-center space-x-3">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <h5 class="text-dark font-medium text-lg">アカウント情報</h5>
         </div>
     </div>
-    
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-header bg-success text-white">
-                <h5 class="mb-0">アカウント一括作成</h5>
+    <div class="p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="p-4 bg-light rounded-lg border border-subtle">
+                <div class="text-sm font-medium text-secondary mb-1">メールアドレス</div>
+                <div class="text-dark">{{ current_user.email }}</div>
             </div>
-            <div class="card-body">
-                <p>新しい生徒アカウントを一括作成します。</p>
-                <div class="d-grid">
-                    <a href="{{ url_for('teacher.bulk_create_students') }}" class="btn btn-outline-success">アカウント作成</a>
-                </div>
+            
+            <div class="p-4 bg-light rounded-lg border border-subtle">
+                <div class="text-sm font-medium text-secondary mb-1">ユーザー名</div>
+                <div class="text-dark">{{ current_user.username }}</div>
             </div>
-        </div>
-    </div>
-    
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-header bg-danger text-white">
-                <h5 class="mb-0">アカウントリセット</h5>
+            
+            <div class="p-4 bg-light rounded-lg border border-subtle">
+                <div class="text-sm font-medium text-secondary mb-1">氏名</div>
+                <div class="text-dark">{{ current_user.name }}</div>
             </div>
-            <div class="card-body">
-                <p>全生徒アカウントを削除して再作成します。</p>
-                <div class="d-grid">
-                    <a href="{{ url_for('teacher.reset_students') }}" class="btn btn-outline-danger">アカウントリセット</a>
-                </div>
+            
+            <div class="p-4 bg-light rounded-lg border border-subtle">
+                <div class="text-sm font-medium text-secondary mb-1">プレフィックス</div>
+                <div class="text-dark">{{ current_user.prefix }}</div>
             </div>
-        </div>
-    </div>
-</div>
-
-<div class="row mt-4">
-    <div class="col-md-12">
-        <div class="card">
-            <div class="card-header bg-info text-white">
-                <h5 class="mb-0">アカウント情報</h5>
+            
+            <div class="p-4 bg-light rounded-lg border border-subtle">
+                <div class="text-sm font-medium text-secondary mb-1">最大生徒数</div>
+                <div class="text-dark">{{ current_user.max_students }}</div>
             </div>
-            <div class="card-body">
-                <dl class="row">
-                    <dt class="col-sm-3">メールアドレス</dt>
-                    <dd class="col-sm-9">{{ current_user.email }}</dd>
-                    
-                    <dt class="col-sm-3">ユーザー名</dt>
-                    <dd class="col-sm-9">{{ current_user.username }}</dd>
-                    
-                    <dt class="col-sm-3">氏名</dt>
-                    <dd class="col-sm-9">{{ current_user.name }}</dd>
-                    
-                    <dt class="col-sm-3">プレフィックス</dt>
-                    <dd class="col-sm-9">{{ current_user.prefix }}</dd>
-                    
-                    <dt class="col-sm-3">最大生徒数</dt>
-                    <dd class="col-sm-9">{{ current_user.max_students }}</dd>
-                    
-                    <dt class="col-sm-3">作成日</dt>
-                    <dd class="col-sm-9">{{ current_user.created_at.strftime('%Y-%m-%d %H:%M') }}</dd>
-                </dl>
+            
+            <div class="p-4 bg-light rounded-lg border border-subtle">
+                <div class="text-sm font-medium text-secondary mb-1">作成日</div>
+                <div class="text-dark">{{ current_user.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
             </div>
         </div>
     </div>

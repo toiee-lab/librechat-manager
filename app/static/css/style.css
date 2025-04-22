@@ -1,36 +1,108 @@
-/* メインスタイル */
-body {
-    background-color: #f5f5f5;
+/* カスタムTailwindスタイル拡張 - Apple風 */
+
+/* テーブルスタイル */
+.table-auto th {
+    @apply bg-white text-left py-3 px-4 font-medium text-secondary border-b border-subtle;
 }
 
-.navbar {
-    margin-bottom: 2rem;
+.table-auto td {
+    @apply py-3 px-4 border-b border-subtle;
 }
 
+.table-auto tr:hover {
+    @apply bg-light;
+}
+
+/* ダッシュボード要素のアニメーション */
+.dashboard-card {
+    @apply transition-all duration-200;
+}
+
+.dashboard-card:hover {
+    @apply shadow-md;
+}
+
+/* フォームフィールド共通スタイル */
+input.form-input {
+    @apply appearance-none border border-subtle rounded-lg w-full py-2.5 px-4 text-dark leading-tight bg-white shadow-sm;
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+}
+
+input.form-input:focus {
+    @apply outline-none ring-2 ring-primary/20 border-primary shadow-none;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 113, 227, 0.2);
+    border-color: #0071e3;
+}
+
+label.form-label {
+    @apply block text-dark font-medium text-sm mb-2;
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    font-size: 0.875rem;
+    color: #1d1d1f;
+}
+
+.form-error {
+    @apply text-[#ff3b30] text-xs mt-1;
+    color: #ff3b30;
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+}
+
+/* ボタンスタイル */
+input.btn-primary, .btn-primary {
+    @apply bg-primary hover:bg-primary/90 text-white font-medium py-2 px-6 rounded-full focus:outline-none transition duration-200 text-sm;
+    display: inline-block;
+    text-align: center;
+    background-color: #0071e3;
+    color: white;
+    padding: 0.5rem 1.5rem;
+    border-radius: 9999px;
+    font-weight: 500;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+input.btn-primary:hover, .btn-primary:hover {
+    background-color: rgba(0, 113, 227, 0.9);
+}
+
+.btn-secondary {
+    @apply bg-subtle hover:bg-subtle/80 text-dark font-medium py-2 px-6 rounded-full focus:outline-none transition duration-200 text-sm;
+}
+
+.btn-danger {
+    @apply bg-[#ff3b30] hover:bg-[#ff3b30]/90 text-white font-medium py-2 px-6 rounded-full focus:outline-none transition duration-200 text-sm;
+}
+
+.btn-success {
+    @apply bg-[#34c759] hover:bg-[#34c759]/90 text-white font-medium py-2 px-6 rounded-full focus:outline-none transition duration-200 text-sm;
+}
+
+/* カード共通スタイル */
 .card {
-    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-    margin-bottom: 1.5rem;
+    @apply bg-white rounded-lg border border-subtle overflow-hidden;
 }
 
 .card-header {
-    font-weight: 500;
+    @apply px-6 py-4 bg-light border-b border-subtle font-medium text-dark;
 }
 
-/* テーブルスタイル */
-.table th {
-    background-color: #f8f9fa;
+.card-body {
+    @apply p-6;
 }
 
-/* フォームスタイル */
-.form-label {
-    font-weight: 500;
-}
-
-.invalid-feedback {
-    font-size: 80%;
-}
-
-/* ユーティリティ */
+/* テキスト切り捨て */
 .text-truncate-2 {
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -39,11 +111,11 @@ body {
     text-overflow: ellipsis;
 }
 
-/* ダッシュボードカード */
-.dashboard-card {
-    transition: transform 0.2s;
+/* モーダルスタイル */
+.modal-backdrop {
+    @apply fixed inset-0 bg-dark/20 backdrop-blur-sm z-40;
 }
 
-.dashboard-card:hover {
-    transform: translateY(-5px);
+.modal-content {
+    @apply fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-lg z-50 max-w-lg w-full mx-auto border border-subtle overflow-hidden;
 }

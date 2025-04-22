@@ -3,56 +3,70 @@
 {% block title %}管理者ダッシュボード | LibreChatユーザー管理{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-md-12">
-        <h2>スーパーユーザーダッシュボード</h2>
-        <div class="alert alert-info">
-            <h4>ようこそ、{{ current_user.username }}さん</h4>
-            <p>LibreChatユーザー管理システムへようこそ。以下の管理機能を利用できます。</p>
-        </div>
+<div>
+    <h2 class="text-2xl font-medium text-dark mb-6">スーパーユーザーダッシュボード</h2>
+    
+    <div class="bg-light border border-subtle p-5 mb-8 rounded-lg">
+        <h4 class="font-medium text-lg mb-2 text-dark">ようこそ、{{ current_user.username }}さん</h4>
+        <p class="text-secondary">LibreChatユーザー管理システムへようこそ。以下の管理機能を利用できます。</p>
     </div>
 </div>
 
-<div class="row mt-4">
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0">講師管理</h5>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="card dashboard-card">
+        <div class="p-6 border-b border-subtle">
+            <div class="flex items-center space-x-3">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+                <h5 class="text-dark font-medium text-lg">講師管理</h5>
             </div>
-            <div class="card-body">
-                <p>登録講師数: <strong>{{ teachers_count }}</strong></p>
-                <div class="d-grid">
-                    <a href="{{ url_for('super_user.list_teachers') }}" class="btn btn-outline-primary">講師一覧を表示</a>
-                </div>
+        </div>
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-5">
+                <p class="text-secondary">登録講師数:</p>
+                <span class="bg-light text-dark font-medium px-3 py-1 rounded-full border border-subtle text-sm">{{ teachers_count }}</span>
             </div>
+            <a href="{{ url_for('super_user.list_teachers') }}" 
+               class="block w-full text-center bg-white border border-primary text-primary hover:bg-primary hover:text-white font-medium py-2 px-4 rounded-full transition duration-200 text-sm">
+                講師一覧を表示
+            </a>
         </div>
     </div>
     
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-header bg-success text-white">
-                <h5 class="mb-0">講師の追加</h5>
+    <div class="card dashboard-card">
+        <div class="p-6 border-b border-subtle">
+            <div class="flex items-center space-x-3">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-[#34c759]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <h5 class="text-dark font-medium text-lg">講師の追加</h5>
             </div>
-            <div class="card-body">
-                <p>新しい講師アカウントを作成します。</p>
-                <div class="d-grid">
-                    <a href="{{ url_for('super_user.create_teacher') }}" class="btn btn-outline-success">講師を追加</a>
-                </div>
-            </div>
+        </div>
+        <div class="p-6">
+            <p class="text-secondary mb-5">新しい講師アカウントを作成します。</p>
+            <a href="{{ url_for('super_user.create_teacher') }}" 
+               class="block w-full text-center bg-white border border-[#34c759] text-[#34c759] hover:bg-[#34c759] hover:text-white font-medium py-2 px-4 rounded-full transition duration-200 text-sm">
+                講師を追加
+            </a>
         </div>
     </div>
     
-    <div class="col-md-4">
-        <div class="card">
-            <div class="card-header bg-info text-white">
-                <h5 class="mb-0">システムログ</h5>
+    <div class="card dashboard-card">
+        <div class="p-6 border-b border-subtle">
+            <div class="flex items-center space-x-3">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                <h5 class="text-dark font-medium text-lg">システムログ</h5>
             </div>
-            <div class="card-body">
-                <p>システム操作のログを確認します。</p>
-                <div class="d-grid">
-                    <a href="{{ url_for('system.system_logs') }}" class="btn btn-outline-info">ログを表示</a>
-                </div>
-            </div>
+        </div>
+        <div class="p-6">
+            <p class="text-secondary mb-5">システム操作のログを確認します。</p>
+            <a href="{{ url_for('system.system_logs') }}" 
+               class="block w-full text-center bg-white border border-secondary text-secondary hover:bg-secondary hover:text-white font-medium py-2 px-4 rounded-full transition duration-200 text-sm">
+                ログを表示
+            </a>
         </div>
     </div>
 </div>

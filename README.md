@@ -32,7 +32,7 @@ LibreChatを活用したAI授業・ワークショップでのユーザーアカ
 ### セットアップ
 1. リポジトリをクローン
    ```
-   git clone https://github.com/yourusername/lft.git
+   git clone https://github.com/toiee-lab/librechat-manager.git lft
    cd lft
    ```
 
@@ -67,12 +67,36 @@ LibreChatを活用したAI授業・ワークショップでのユーザーアカ
 
 ## 本番環境へのデプロイ
 
+### 環境設定ファイルの作成
+
+少し複雑。
+
+```
+cp .env.example .env
+```
+`.env`ファイルを編集し、以下の設定を行います：
+```
+SECRET_KEY=安全な乱数値を設定
+APPLICATION_ROOT=/lft
+LIBRECHAT_ROOT=/path/to/librechat  # LibreChatのルートディレクトリ
+LIBRECHAT_CONTAINER=LibreChat-API      # コンテナ名（docker ps で確認する）
+LIBRECHAT_WORK_DIR=..               # create-user が含まれる package.jsonがある場所
+```
+
+
 ### Gunicornの設定
 ```
 gunicorn -w 4 -b 127.0.0.1:8000 "run:app"
 ```
 
 ### systemdサービスとして設定
+
+```
+sudo nano /etc/systemd/system/lft.service
+```
+
+以下を参考に記載する
+
 ```
 [Unit]
 Description=LibreChat User Manager
@@ -89,6 +113,30 @@ Restart=always
 WantedBy=multi-user.target
 ```
 
+編集が完了したら、以下のコマンドでシステムにサービスを認識させる
+
+```
+sudo systemctl daemon-reload
+```
+
+サービスを有効化して自動起動するように設定します。
+```
+sudo systemctl enable lft.service
+```
+
+サービスの起動
+```
+sudo systemctl start lft.service
+```
+
+サービスの状態を確認
+
+```
+sudo systemctl status lft.service
+```
+
+
+
 ### Nginxリバースプロキシ設定
 
 LibreChatと同じサーバーで運用する場合のNginx設定例：
@@ -98,19 +146,21 @@ server {
     listen 80;
     server_name your-domain.com;
 
+    # LFT (LibreChatユーザー管理システム)へのプロキシ設定
+   location /lft/ {
+      proxy_pass http://localhost:8000/lft/;
+      proxy_http_version 1.1;
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection 'upgrade';
+      proxy_set_header Host $host;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+      proxy_cache_bypass $http_upgrade;
+   }
+
     # LibreChatへのプロキシ設定
     location / {
         proxy_pass http://localhost:3080;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
-    }
-
-    # LFT (LibreChatユーザー管理システム)へのプロキシ設定
-    location /lft/ {
-        proxy_pass http://localhost:8000/;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';

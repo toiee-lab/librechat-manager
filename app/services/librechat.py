@@ -11,73 +11,225 @@ class LibreChatService:
     
     def create_user(self, email, username, name, password):
         """ユーザーを作成する"""
+        # 詳細ログ記録用の辞書
+        log_data = {
+            'function': 'create_user',
+            'email': email,
+            'username': username,
+            'name': name,
+            'attempts': []
+        }
+        
         # コマンドインジェクション対策のためにshlex.quoteを使用
         command_parts = [
             "docker", "exec", "-i", self.container_name, "/bin/sh", "-c",
             f"cd {self.work_dir} && echo y | npm run create-user {shlex.quote(email)} {shlex.quote(username)} {shlex.quote(name)} {shlex.quote(password)} --email-verified=true"
         ]
-        print(f"DEBUG - コマンド配列: {command_parts}")
         
-        # 通常のシェルコマンド形式
-        cmd = f"docker exec -i {self.container_name} /bin/sh -c \"cd {self.work_dir} && echo y | npm run create-user {shlex.quote(email)} {shlex.quote(username)} {shlex.quote(name)} {shlex.quote(password)} --email-verified=true\""
-        
-        # 本番環境とローカル環境の違いに対応するため、別の形式も試す
-        alt_cmd = f"docker exec -i {self.container_name} /bin/sh -c \"echo y | npm run create-user {shlex.quote(email)} {shlex.quote(username)} {shlex.quote(name)} {shlex.quote(password)} --email-verified=true\""
-        
-        # 直接実行を試みる
-        try:
-            print(f"DEBUG - 直接実行試行: {' '.join(command_parts)}")
-            direct_result = subprocess.run(command_parts, cwd=self.librechat_root, capture_output=True, text=True)
-            print(f"DEBUG - 直接実行結果: {direct_result.returncode}")
-            if direct_result.stdout:
-                print(f"DEBUG - 直接実行標準出力: {direct_result.stdout[:200]}...")
-            if direct_result.stderr:
-                print(f"DEBUG - 直接実行エラー: {direct_result.stderr[:200]}...")
+        # すべての試行コマンドを用意
+        commands = [
+            # 通常の方法（work_dirを使用）
+            f"docker exec -i {self.container_name} /bin/sh -c \"cd {self.work_dir} && echo y | npm run create-user {shlex.quote(email)} {shlex.quote(username)} {shlex.quote(name)} {shlex.quote(password)} --email-verified=true\"",
             
-            # エラーがあれば代替コマンドを試す
-            if direct_result.returncode != 0:
-                print(f"DEBUG - 代替コマンド試行: {alt_cmd}")
-                alt_result = self._run_command(alt_cmd)
-                if alt_result.returncode == 0:
-                    return alt_result
+            # work_dirなし
+            f"docker exec -i {self.container_name} /bin/sh -c \"echo y | npm run create-user {shlex.quote(email)} {shlex.quote(username)} {shlex.quote(name)} {shlex.quote(password)} --email-verified=true\"",
             
-            return direct_result
-        except Exception as e:
-            print(f"DEBUG - 直接実行エラー例外: {str(e)}")
-            # 失敗したら通常の方法にフォールバック
-            return self._run_command(cmd)
+            # API直接アクセス
+            f"docker exec -i {self.container_name} /bin/sh -c \"cd api && echo y | npm run create-user {shlex.quote(email)} {shlex.quote(username)} {shlex.quote(name)} {shlex.quote(password)} --email-verified=true\"",
+            
+            # ルートディレクトリからnpxを使用
+            f"docker exec -i {self.container_name} /bin/sh -c \"echo y | npx --prefix=. create-user {shlex.quote(email)} {shlex.quote(username)} {shlex.quote(name)} {shlex.quote(password)} --email-verified=true\""
+        ]
+        
+        # すべてのコマンドを順番に試す
+        for i, cmd in enumerate(commands):
+            try:
+                print(f"DEBUG - 試行 {i+1}/{len(commands)}: {cmd}")
+                result = self._run_command(cmd)
+                
+                # 詳細ログ
+                attempt_log = {
+                    'attempt_number': i+1,
+                    'command': cmd,
+                    'returncode': result.returncode,
+                    'stdout_sample': result.stdout[:500] if result.stdout else '',
+                    'stderr_sample': result.stderr[:500] if result.stderr else ''
+                }
+                log_data['attempts'].append(attempt_log)
+                
+                print(f"DEBUG - 試行 {i+1} 結果: {result.returncode}")
+                if result.stdout:
+                    print(f"DEBUG - 試行 {i+1} 標準出力: {result.stdout}")
+                if result.stderr:
+                    print(f"DEBUG - 試行 {i+1} エラー出力: {result.stderr}")
+                
+                # 成功したら終了
+                if result.returncode == 0:
+                    log_data['success'] = True
+                    log_data['successful_attempt'] = i+1
+                    print(f"DEBUG - ユーザー作成成功 (試行 {i+1}): {email}")
+                    # ログ全体をJSONで出力（ファイル書き込みに置き換え可能）
+                    print(f"LIBRECHAT_LOG: {json.dumps(log_data)}")
+                    return result
+            except Exception as e:
+                print(f"DEBUG - 試行 {i+1} 例外: {str(e)}")
+                log_data['attempts'].append({
+                    'attempt_number': i+1,
+                    'command': cmd,
+                    'exception': str(e)
+                })
+        
+        # すべて失敗
+        log_data['success'] = False
+        print(f"DEBUG - すべての試行が失敗: {email}")
+        # ログ全体をJSONで出力（ファイル書き込みに置き換え可能）
+        print(f"LIBRECHAT_LOG: {json.dumps(log_data)}")
+        
+        # 最初のコマンドの結果を返す（互換性のため）
+        return self._run_command(commands[0])
     
     def delete_user(self, email):
         """ユーザーを削除する"""
-        cmd = f"docker exec -i {self.container_name} /bin/sh -c \"cd {self.work_dir} && echo y | npm run delete-user {shlex.quote(email)}\""
+        # 詳細ログ記録用の辞書
+        log_data = {
+            'function': 'delete_user',
+            'email': email,
+            'attempts': []
+        }
         
-        # 本番環境とローカル環境の違いに対応するため、まず標準のコマンドを試す
-        result = self._run_command(cmd)
+        # すべての試行コマンドを用意
+        commands = [
+            # 通常の方法（work_dirを使用）
+            f"docker exec -i {self.container_name} /bin/sh -c \"cd {self.work_dir} && echo y | npm run delete-user {shlex.quote(email)}\"",
+            
+            # work_dirなし
+            f"docker exec -i {self.container_name} /bin/sh -c \"echo y | npm run delete-user {shlex.quote(email)}\"",
+            
+            # API直接アクセス
+            f"docker exec -i {self.container_name} /bin/sh -c \"cd api && echo y | npm run delete-user {shlex.quote(email)}\"",
+            
+            # ルートディレクトリからnpxを使用
+            f"docker exec -i {self.container_name} /bin/sh -c \"echo y | npx --prefix=. delete-user {shlex.quote(email)}\""
+        ]
         
-        # エラーがあれば代替コマンドを試す
-        if result.returncode != 0:
-            alt_cmd = f"docker exec -i {self.container_name} /bin/sh -c \"echo y | npm run delete-user {shlex.quote(email)}\""
-            print(f"DEBUG - 代替削除コマンド試行: {alt_cmd}")
-            alt_result = self._run_command(alt_cmd)
-            if alt_result.returncode == 0:
-                return alt_result
+        # すべてのコマンドを順番に試す
+        for i, cmd in enumerate(commands):
+            try:
+                print(f"DEBUG - 削除試行 {i+1}/{len(commands)}: {cmd}")
+                result = self._run_command(cmd)
+                
+                # 詳細ログ
+                attempt_log = {
+                    'attempt_number': i+1,
+                    'command': cmd,
+                    'returncode': result.returncode,
+                    'stdout_sample': result.stdout[:500] if result.stdout else '',
+                    'stderr_sample': result.stderr[:500] if result.stderr else ''
+                }
+                log_data['attempts'].append(attempt_log)
+                
+                print(f"DEBUG - 削除試行 {i+1} 結果: {result.returncode}")
+                if result.stdout:
+                    print(f"DEBUG - 削除試行 {i+1} 標準出力: {result.stdout}")
+                if result.stderr:
+                    print(f"DEBUG - 削除試行 {i+1} エラー出力: {result.stderr}")
+                
+                # 成功したら終了
+                if result.returncode == 0:
+                    log_data['success'] = True
+                    log_data['successful_attempt'] = i+1
+                    print(f"DEBUG - ユーザー削除成功 (試行 {i+1}): {email}")
+                    # ログ全体をJSONで出力（ファイル書き込みに置き換え可能）
+                    print(f"LIBRECHAT_LOG: {json.dumps(log_data)}")
+                    return result
+            except Exception as e:
+                print(f"DEBUG - 削除試行 {i+1} 例外: {str(e)}")
+                log_data['attempts'].append({
+                    'attempt_number': i+1,
+                    'command': cmd,
+                    'exception': str(e)
+                })
         
-        return result
+        # すべて失敗
+        log_data['success'] = False
+        print(f"DEBUG - すべての削除試行が失敗: {email}")
+        # ログ全体をJSONで出力（ファイル書き込みに置き換え可能）
+        print(f"LIBRECHAT_LOG: {json.dumps(log_data)}")
+        
+        # 最初のコマンドの結果を返す（互換性のため）
+        return self._run_command(commands[0])
     
     def list_users(self):
         """ユーザー一覧を取得する"""
-        cmd = f"docker exec -i {self.container_name} /bin/sh -c \"cd {self.work_dir} && npm run list-users\""
-        result = self._run_command(cmd)
+        # 詳細ログ記録用の辞書
+        log_data = {
+            'function': 'list_users',
+            'attempts': []
+        }
         
-        # エラーがあれば代替コマンドを試す
-        if result.returncode != 0:
-            alt_cmd = f"docker exec -i {self.container_name} /bin/sh -c \"npm run list-users\""
-            print(f"DEBUG - 代替一覧コマンド試行: {alt_cmd}")
-            alt_result = self._run_command(alt_cmd)
-            if alt_result.returncode == 0:
-                return self._parse_user_list(alt_result.stdout)
+        # すべての試行コマンドを用意
+        commands = [
+            # 通常の方法（work_dirを使用）
+            f"docker exec -i {self.container_name} /bin/sh -c \"cd {self.work_dir} && npm run list-users\"",
+            
+            # work_dirなし
+            f"docker exec -i {self.container_name} /bin/sh -c \"npm run list-users\"",
+            
+            # API直接アクセス
+            f"docker exec -i {self.container_name} /bin/sh -c \"cd api && npm run list-users\"",
+            
+            # ルートディレクトリからnpxを使用
+            f"docker exec -i {self.container_name} /bin/sh -c \"npx --prefix=. list-users\""
+        ]
         
-        return self._parse_user_list(result.stdout) if result.returncode == 0 else []
+        # すべてのコマンドを順番に試す
+        for i, cmd in enumerate(commands):
+            try:
+                print(f"DEBUG - 一覧試行 {i+1}/{len(commands)}: {cmd}")
+                result = self._run_command(cmd)
+                
+                # 詳細ログ
+                attempt_log = {
+                    'attempt_number': i+1,
+                    'command': cmd,
+                    'returncode': result.returncode,
+                    'stdout_sample': result.stdout[:500] if result.stdout else '',
+                    'stderr_sample': result.stderr[:500] if result.stderr else ''
+                }
+                log_data['attempts'].append(attempt_log)
+                
+                print(f"DEBUG - 一覧試行 {i+1} 結果: {result.returncode}")
+                if result.stdout:
+                    print(f"DEBUG - 一覧試行 {i+1} 標準出力: {result.stdout}")
+                if result.stderr:
+                    print(f"DEBUG - 一覧試行 {i+1} エラー出力: {result.stderr}")
+                
+                # 成功したら終了
+                if result.returncode == 0:
+                    users = self._parse_user_list(result.stdout)
+                    log_data['success'] = True
+                    log_data['successful_attempt'] = i+1
+                    log_data['users_count'] = len(users)
+                    print(f"DEBUG - ユーザー一覧取得成功 (試行 {i+1}): {len(users)}件")
+                    # ログ全体をJSONで出力（ファイル書き込みに置き換え可能）
+                    print(f"LIBRECHAT_LOG: {json.dumps(log_data)}")
+                    return users
+            except Exception as e:
+                print(f"DEBUG - 一覧試行 {i+1} 例外: {str(e)}")
+                log_data['attempts'].append({
+                    'attempt_number': i+1,
+                    'command': cmd,
+                    'exception': str(e)
+                })
+        
+        # すべて失敗
+        log_data['success'] = False
+        log_data['users_count'] = 0
+        print(f"DEBUG - すべての一覧試行が失敗")
+        # ログ全体をJSONで出力（ファイル書き込みに置き換え可能）
+        print(f"LIBRECHAT_LOG: {json.dumps(log_data)}")
+        
+        return []
     
     def _run_command(self, cmd):
         """コマンドを実行する"""

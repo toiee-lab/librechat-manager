@@ -34,12 +34,27 @@ def create_app(config_class):
     # ホームページルート
     @app.route('/')
     def index():
-        # デフォルトでは講師ログインページにリダイレクト
+        from flask_login import current_user
+        
+        # ログイン状態とユーザータイプに応じて適切にリダイレクト
+        if current_user.is_authenticated:
+            if current_user.user_type == 'super_user':
+                return redirect(url_for('super_user.dashboard'))
+            elif current_user.user_type == 'teacher':
+                return redirect(url_for('teacher.dashboard'))
+        
+        # 未ログイン時は講師ログインページにリダイレクト
         return redirect(url_for('auth.login'))
         
     @app.route('/admin')
     def admin():
-        # 管理者ページのルートは管理者ログインにリダイレクト
+        from flask_login import current_user
+        
+        # ログイン状態とユーザータイプに応じて適切にリダイレクト
+        if current_user.is_authenticated and current_user.user_type == 'super_user':
+            return redirect(url_for('super_user.dashboard'))
+        
+        # 未ログインまたはスーパーユーザーでない場合は管理者ログインページにリダイレクト
         return redirect(url_for('auth.admin_login'))
     
     return app

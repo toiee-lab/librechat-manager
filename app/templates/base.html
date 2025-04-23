@@ -77,7 +77,17 @@
     <nav class="bg-white shadow-sm border-b border-subtle">
         <div class="container mx-auto px-4">
             <div class="flex justify-between items-center py-4">
-                <a href="{{ url_for('index') }}" class="text-dark font-medium text-xl">LibreChatユーザー管理</a>
+                {% if current_user.is_authenticated %}
+                    {% if current_user.user_type == 'super_user' %}
+                        <a href="{{ url_for('super_user.dashboard') }}" class="text-dark font-medium text-xl">LibreChatユーザー管理</a>
+                    {% elif current_user.user_type == 'teacher' %}
+                        <a href="{{ url_for('teacher.dashboard') }}" class="text-dark font-medium text-xl">LibreChatユーザー管理</a>
+                    {% else %}
+                        <a href="{{ url_for('index') }}" class="text-dark font-medium text-xl">LibreChatユーザー管理</a>
+                    {% endif %}
+                {% else %}
+                    <a href="{{ url_for('index') }}" class="text-dark font-medium text-xl">LibreChatユーザー管理</a>
+                {% endif %}
                 
                 <div class="md:hidden">
                     <button id="mobile-menu-button" class="text-dark">

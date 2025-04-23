@@ -216,7 +216,11 @@ def delete_teacher(teacher_id):
     except Exception as e:
         teacher_librechat_status = f"エラー: {str(e)}"
     
-    # 最後にデータベースから講師を削除（関連する生徒も自動削除される）
+    # 関連する生徒を先に削除する
+    for student in students:
+        db.session.delete(student)
+    
+    # 講師を削除
     db.session.delete(teacher)
     db.session.commit()
     

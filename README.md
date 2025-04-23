@@ -53,6 +53,7 @@ LibreChatを活用したAI授業・ワークショップでのユーザーアカ
    LIBRECHAT_ROOT=/path/to/librechat  # LibreChatのルートディレクトリ
    LIBRECHAT_CONTAINER=LibreChat      # コンテナ名（デフォルトはLibreChat）
    LIBRECHAT_WORK_DIR=.               # docker-compose.ymlがある作業ディレクトリ
+   DOCKER_PATH=/usr/bin/docker        # dockerコマンドの絶対パス（which dockerで確認）
    ```
 
 4. データベースを初期化
@@ -81,10 +82,20 @@ APPLICATION_ROOT=/lft
 LIBRECHAT_ROOT=/path/to/librechat  # LibreChatのルートディレクトリ
 LIBRECHAT_CONTAINER=LibreChat-API      # コンテナ名（docker ps で確認する）
 LIBRECHAT_WORK_DIR=..               # create-user が含まれる package.jsonがある場所
+DOCKER_PATH=/usr/bin/docker        # dockerコマンドの絶対パス（which dockerで確認）
 ```
 
 
 ### Gunicornの設定
+
+必要なパッケージをインストール
+```
+python3 -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+```
+
+テストで立ち上げる
+
 ```
 gunicorn -w 4 -b 127.0.0.1:8000 "run:app"
 ```
@@ -105,7 +116,7 @@ After=network.target
 [Service]
 User=yourusername
 WorkingDirectory=/path/to/lft
-Environment="PATH=/path/to/lft/venv/bin"
+Environment="PATH=/path/to/lft/venv/bin:/usr/bin:/bin"
 ExecStart=/path/to/lft/venv/bin/gunicorn -w 4 -b 127.0.0.1:8000 "run:app"
 Restart=always
 
@@ -183,6 +194,59 @@ server {
     ...
 }
 ```
+
+### アップデート
+
+```
+git pull
+source venv/bin/activate
+pip install --upgrade -r requirements.txt
+
+sudo systemctl restart lft
+```
+
+### ログの見方
+
+```
+sudo journalctl -u lft
+```
+
+アプリケーション固有のログ:
+
+アプリケーションのルートディレクトリやログディレクトリ内のファイル。
+以下のコマンドを実行すると、ログの場所がわかるかもしれません：
+
+- Systemdサービスのログを確認
+  sudo journalctl -u gunicorn
+
+- プロセスのstdoutとstderrを追跡
+```
+ps aux | grep gunicorn
+sudo tail -f /proc/<プロセスID>/fd/1  # 標準出力
+sudo tail -f /proc/<プロセスID>/fd/2  # 標準エラー
+```
+
+- アプリディレクトリでログファイルを検索
+
+```
+find /path/to/your/app -name "*.log"
+```
+
+### LibreChatユーザー作成のトラブルシューティング
+
+LibreChatユーザーが作成されない場合は、以下の2つの設定を確認してください：
+
+1. **dockerコマンドへのパス**：
+   - `.env`ファイルの`DOCKER_PATH`に正しいdockerの実行パスが設定されているか確認
+   - `which docker`コマンドでdockerコマンドのフルパスを確認できます
+
+2. **systemdサービス設定のPATH**：
+   - `/etc/systemd/system/lft.service`の`Environment="PATH=..."`に`/usr/bin`や`/usr/local/bin`（dockerのインストール場所）が含まれているか確認
+
+詳細なデバッグログには"LIBRECHAT_LOG:"で始まる行があり、JSONフォーマットで詳細な診断情報が記録されています。
+このログを確認することで、どのコマンドが試行され、どのようなエラーが発生したかを特定できます。
+
+
 
 ## 使用方法
 

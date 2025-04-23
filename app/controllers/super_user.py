@@ -118,7 +118,8 @@ def create_teacher():
             librechat_service = LibreChatService(
                 current_app.config['LIBRECHAT_ROOT'],
                 container_name=current_app.config['LIBRECHAT_CONTAINER'],
-                work_dir=current_app.config['LIBRECHAT_WORK_DIR']
+                work_dir=current_app.config['LIBRECHAT_WORK_DIR'],
+                docker_path=current_app.config['DOCKER_PATH']
             )
             librechat_result = librechat_service.create_user(
                 email=teacher.email,
@@ -191,7 +192,8 @@ def delete_teacher(teacher_id):
     librechat_service = LibreChatService(
         current_app.config['LIBRECHAT_ROOT'],
         container_name=current_app.config['LIBRECHAT_CONTAINER'],
-        work_dir=current_app.config['LIBRECHAT_WORK_DIR']
+        work_dir=current_app.config['LIBRECHAT_WORK_DIR'],
+        docker_path=current_app.config['DOCKER_PATH']
     )
     
     # 各生徒のLibreChatユーザーを削除
@@ -209,7 +211,8 @@ def delete_teacher(teacher_id):
         librechat_service = LibreChatService(
             current_app.config['LIBRECHAT_ROOT'],
             container_name=current_app.config['LIBRECHAT_CONTAINER'],
-            work_dir=current_app.config['LIBRECHAT_WORK_DIR']
+            work_dir=current_app.config['LIBRECHAT_WORK_DIR'],
+            docker_path=current_app.config['DOCKER_PATH']
         )
         librechat_result = librechat_service.delete_user(email=teacher_email)
         teacher_librechat_status = "成功" if librechat_result.returncode == 0 else f"失敗 ({librechat_result.stderr})"

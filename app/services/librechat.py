@@ -4,10 +4,12 @@ import json
 import re
 
 class LibreChatService:
-    def __init__(self, librechat_root, container_name="LibreChat", work_dir=".."):
+    def __init__(self, librechat_root, container_name="LibreChat", work_dir="..", docker_path="/usr/bin/docker"):
         self.librechat_root = librechat_root
         self.container_name = container_name
         self.work_dir = work_dir
+        # dockerコマンドのフルパスを設定（環境によって異なる場合がある）
+        self.docker_path = docker_path
     
     def create_user(self, email, username, name, password):
         """ユーザーを作成する"""
@@ -22,23 +24,23 @@ class LibreChatService:
         
         # コマンドインジェクション対策のためにshlex.quoteを使用
         command_parts = [
-            "docker", "exec", "-i", self.container_name, "/bin/sh", "-c",
+            self.docker_path, "exec", "-i", self.container_name, "/bin/sh", "-c",
             f"cd {self.work_dir} && echo y | npm run create-user {shlex.quote(email)} {shlex.quote(username)} {shlex.quote(name)} {shlex.quote(password)} --email-verified=true"
         ]
         
         # すべての試行コマンドを用意
         commands = [
             # 通常の方法（work_dirを使用）
-            f"docker exec -i {self.container_name} /bin/sh -c \"cd {self.work_dir} && echo y | npm run create-user {shlex.quote(email)} {shlex.quote(username)} {shlex.quote(name)} {shlex.quote(password)} --email-verified=true\"",
+            f"{self.docker_path} exec -i {self.container_name} /bin/sh -c \"cd {self.work_dir} && echo y | npm run create-user {shlex.quote(email)} {shlex.quote(username)} {shlex.quote(name)} {shlex.quote(password)} --email-verified=true\"",
             
             # work_dirなし
-            f"docker exec -i {self.container_name} /bin/sh -c \"echo y | npm run create-user {shlex.quote(email)} {shlex.quote(username)} {shlex.quote(name)} {shlex.quote(password)} --email-verified=true\"",
+            f"{self.docker_path} exec -i {self.container_name} /bin/sh -c \"echo y | npm run create-user {shlex.quote(email)} {shlex.quote(username)} {shlex.quote(name)} {shlex.quote(password)} --email-verified=true\"",
             
             # API直接アクセス
-            f"docker exec -i {self.container_name} /bin/sh -c \"cd api && echo y | npm run create-user {shlex.quote(email)} {shlex.quote(username)} {shlex.quote(name)} {shlex.quote(password)} --email-verified=true\"",
+            f"{self.docker_path} exec -i {self.container_name} /bin/sh -c \"cd api && echo y | npm run create-user {shlex.quote(email)} {shlex.quote(username)} {shlex.quote(name)} {shlex.quote(password)} --email-verified=true\"",
             
             # ルートディレクトリからnpxを使用
-            f"docker exec -i {self.container_name} /bin/sh -c \"echo y | npx --prefix=. create-user {shlex.quote(email)} {shlex.quote(username)} {shlex.quote(name)} {shlex.quote(password)} --email-verified=true\""
+            f"{self.docker_path} exec -i {self.container_name} /bin/sh -c \"echo y | npx --prefix=. create-user {shlex.quote(email)} {shlex.quote(username)} {shlex.quote(name)} {shlex.quote(password)} --email-verified=true\""
         ]
         
         # すべてのコマンドを順番に試す
@@ -100,16 +102,16 @@ class LibreChatService:
         # すべての試行コマンドを用意
         commands = [
             # 通常の方法（work_dirを使用）
-            f"docker exec -i {self.container_name} /bin/sh -c \"cd {self.work_dir} && echo y | npm run delete-user {shlex.quote(email)}\"",
+            f"{self.docker_path} exec -i {self.container_name} /bin/sh -c \"cd {self.work_dir} && echo y | npm run delete-user {shlex.quote(email)}\"",
             
             # work_dirなし
-            f"docker exec -i {self.container_name} /bin/sh -c \"echo y | npm run delete-user {shlex.quote(email)}\"",
+            f"{self.docker_path} exec -i {self.container_name} /bin/sh -c \"echo y | npm run delete-user {shlex.quote(email)}\"",
             
             # API直接アクセス
-            f"docker exec -i {self.container_name} /bin/sh -c \"cd api && echo y | npm run delete-user {shlex.quote(email)}\"",
+            f"{self.docker_path} exec -i {self.container_name} /bin/sh -c \"cd api && echo y | npm run delete-user {shlex.quote(email)}\"",
             
             # ルートディレクトリからnpxを使用
-            f"docker exec -i {self.container_name} /bin/sh -c \"echo y | npx --prefix=. delete-user {shlex.quote(email)}\""
+            f"{self.docker_path} exec -i {self.container_name} /bin/sh -c \"echo y | npx --prefix=. delete-user {shlex.quote(email)}\""
         ]
         
         # すべてのコマンドを順番に試す
@@ -170,16 +172,16 @@ class LibreChatService:
         # すべての試行コマンドを用意
         commands = [
             # 通常の方法（work_dirを使用）
-            f"docker exec -i {self.container_name} /bin/sh -c \"cd {self.work_dir} && npm run list-users\"",
+            f"{self.docker_path} exec -i {self.container_name} /bin/sh -c \"cd {self.work_dir} && npm run list-users\"",
             
             # work_dirなし
-            f"docker exec -i {self.container_name} /bin/sh -c \"npm run list-users\"",
+            f"{self.docker_path} exec -i {self.container_name} /bin/sh -c \"npm run list-users\"",
             
             # API直接アクセス
-            f"docker exec -i {self.container_name} /bin/sh -c \"cd api && npm run list-users\"",
+            f"{self.docker_path} exec -i {self.container_name} /bin/sh -c \"cd api && npm run list-users\"",
             
             # ルートディレクトリからnpxを使用
-            f"docker exec -i {self.container_name} /bin/sh -c \"npx --prefix=. list-users\""
+            f"{self.docker_path} exec -i {self.container_name} /bin/sh -c \"npx --prefix=. list-users\""
         ]
         
         # すべてのコマンドを順番に試す

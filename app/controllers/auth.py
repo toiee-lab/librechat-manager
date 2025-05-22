@@ -140,7 +140,7 @@ def login():
             return redirect(url_for('teacher.dashboard'))
         else:
             print(f"DEBUG - ログイン失敗: {email}")
-            flash('メールアドレスまたはパスワードが無効です', 'danger')
+            flash('メールアドレスまたはパスワードが無効です。あるいは、登録がありません。プレイグラウンドを利用したい方は、利用申請を行なってください。<a href="https://toieepartner.substack.com/p/ai-playground" target="_blank" style="text-decoration: underline; font-weight: bold;">詳しい情報はこちらです</a>', 'danger')
     
     return render_template('auth/login.html', form=form)
 

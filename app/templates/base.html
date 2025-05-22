@@ -160,7 +160,7 @@
                     {% else %}
                         <div class="bg-[#f0f5ff] border border-[#cfe2ff] text-[#084298] p-4 mb-4 rounded-lg">
                     {% endif %}
-                        {{ message }}
+                        {{ message | safe }}
                     </div>
                 {% endfor %}
             {% endif %}

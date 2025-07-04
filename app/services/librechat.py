@@ -26,17 +26,17 @@ class LibreChatService:
         
         # すべての試行コマンドを用意
         commands = [
+            # LibreChat v0.7.8の正しいパス
+            f"{self.docker_path} exec -i {self.container_name} /bin/sh -c \"echo y | node config/create-user.js {shlex.quote(email)} {shlex.quote(username)} {shlex.quote(name)} {shlex.quote(password)} --email-verified=true\"",
+            
             # 通常の方法（work_dirを使用）
             f"{self.docker_path} exec -i {self.container_name} /bin/sh -c \"cd {self.work_dir} && echo y | npm run create-user {shlex.quote(email)} {shlex.quote(username)} {shlex.quote(name)} {shlex.quote(password)} --email-verified=true\"",
             
             # work_dirなし
             f"{self.docker_path} exec -i {self.container_name} /bin/sh -c \"echo y | npm run create-user {shlex.quote(email)} {shlex.quote(username)} {shlex.quote(name)} {shlex.quote(password)} --email-verified=true\"",
             
-            # API直接アクセス
-            f"{self.docker_path} exec -i {self.container_name} /bin/sh -c \"cd api && echo y | npm run create-user {shlex.quote(email)} {shlex.quote(username)} {shlex.quote(name)} {shlex.quote(password)} --email-verified=true\"",
-            
-            # ルートディレクトリからnpxを使用
-            f"{self.docker_path} exec -i {self.container_name} /bin/sh -c \"echo y | npx --prefix=. create-user {shlex.quote(email)} {shlex.quote(username)} {shlex.quote(name)} {shlex.quote(password)} --email-verified=true\""
+            # 直接nodeコマンド実行
+            f"{self.docker_path} exec -i {self.container_name} /bin/sh -c \"echo y | node ./config/create-user.js {shlex.quote(email)} {shlex.quote(username)} {shlex.quote(name)} {shlex.quote(password)} --email-verified=true\""
         ]
         
         # すべてのコマンドを順番に試す

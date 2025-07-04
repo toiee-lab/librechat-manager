@@ -16,19 +16,18 @@ class Config:
     APPLICATION_ROOT = os.environ.get('APPLICATION_ROOT') or '/'
     
     # セッションクッキー設定（LibreChatとの競合を回避）
-    @property
-    def SESSION_COOKIE_PATH(self):
-        """セッションクッキーのパスを APPLICATION_ROOT に設定"""
-        return self.APPLICATION_ROOT if self.APPLICATION_ROOT != '/' else None
+    # Werkzeug 3.x + Python 3.13での互換性問題を回避するため、パス設定を無効化
+    SESSION_COOKIE_PATH = None
     
-    @property
-    def SESSION_COOKIE_NAME(self):
+    def __init__(self):
         """セッションクッキー名をアプリケーション固有に設定"""
+        super().__init__()
         if self.APPLICATION_ROOT and self.APPLICATION_ROOT != '/':
             # サブパスの場合、パス名を基にクッキー名を生成
             path_name = self.APPLICATION_ROOT.strip('/').replace('/', '_')
-            return f'lft_{path_name}_session'
-        return 'lft_session'
+            self.SESSION_COOKIE_NAME = f'lft_{path_name}_session'
+        else:
+            self.SESSION_COOKIE_NAME = 'lft_session'
     
     # LibreChat設定
     LIBRECHAT_ROOT = os.environ.get('LIBRECHAT_ROOT') or '/path/to/librechat'

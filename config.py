@@ -15,6 +15,21 @@ class Config:
     # アプリケーションルートパス設定（サブフォルダデプロイメント用）
     APPLICATION_ROOT = os.environ.get('APPLICATION_ROOT') or '/'
     
+    # セッションクッキー設定（LibreChatとの競合を回避）
+    @property
+    def SESSION_COOKIE_PATH(self):
+        """セッションクッキーのパスを APPLICATION_ROOT に設定"""
+        return self.APPLICATION_ROOT if self.APPLICATION_ROOT != '/' else None
+    
+    @property
+    def SESSION_COOKIE_NAME(self):
+        """セッションクッキー名をアプリケーション固有に設定"""
+        if self.APPLICATION_ROOT and self.APPLICATION_ROOT != '/':
+            # サブパスの場合、パス名を基にクッキー名を生成
+            path_name = self.APPLICATION_ROOT.strip('/').replace('/', '_')
+            return f'lft_{path_name}_session'
+        return 'lft_session'
+    
     # LibreChat設定
     LIBRECHAT_ROOT = os.environ.get('LIBRECHAT_ROOT') or '/path/to/librechat'
     LIBRECHAT_CONTAINER = os.environ.get('LIBRECHAT_CONTAINER') or 'LibreChat'

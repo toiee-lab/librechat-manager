@@ -5,18 +5,7 @@ from flask import Flask, redirect, url_for
 
 app = create_app(Config)
 
-# サブパスでのデプロイに対応するための設定
-if app.config['APPLICATION_ROOT'] and app.config['APPLICATION_ROOT'] != '/':
-    # アプリケーションルートがサブパスに設定されている場合
-    from werkzeug.middleware.dispatcher import DispatcherMiddleware
-    from werkzeug.wrappers import Response
-    
-    # ルートパスにダミーアプリケーションを配置
-    def simple(env, resp):
-        return Response(f'このアプリケーションは {app.config["APPLICATION_ROOT"]} でアクセスしてください')(env, resp)
-    
-    # DispatcherMiddlewareでアプリケーションをサブパスにマウント
-    app.wsgi_app = DispatcherMiddleware(simple, {app.config['APPLICATION_ROOT']: app.wsgi_app})
+# ルートディレクトリでのデプロイ - サブパス設定は不要
 
 @app.cli.command('create-db')
 def create_db():

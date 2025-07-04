@@ -24,12 +24,7 @@ def create_app(config_class):
     app.register_blueprint(teacher_bp, url_prefix='/teacher')
     app.register_blueprint(system_bp)
     
-    # アプリケーションルートパスの設定
-    if app.config['APPLICATION_ROOT'] and app.config['APPLICATION_ROOT'] != '/':
-        # サブパスURLの生成をサポートするためのURLプロセッサ
-        @app.context_processor
-        def inject_url_root():
-            return {'url_root': app.config['APPLICATION_ROOT']}
+    # ルートディレクトリでのデプロイ - URLプロセッサは不要
     
     # ホームページルート
     @app.route('/')

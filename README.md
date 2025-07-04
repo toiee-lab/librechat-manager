@@ -78,7 +78,7 @@ cp .env.example .env
 `.env`ファイルを編集し、以下の設定を行います：
 ```
 SECRET_KEY=安全な乱数値を設定
-APPLICATION_ROOT=/lft
+APPLICATION_ROOT=/
 LIBRECHAT_ROOT=/path/to/librechat  # LibreChatのルートディレクトリ
 LIBRECHAT_CONTAINER=LibreChat-API      # コンテナ名（docker ps で確認する）
 LIBRECHAT_WORK_DIR=..               # create-user が含まれる package.jsonがある場所
@@ -158,8 +158,8 @@ server {
     server_name your-domain.com;
 
     # LFT (LibreChatユーザー管理システム)へのプロキシ設定
-   location /lft/ {
-      proxy_pass http://localhost:8000/lft/;
+   location / {
+      proxy_pass http://localhost:8000/;
       proxy_http_version 1.1;
       proxy_set_header Upgrade $http_upgrade;
       proxy_set_header Connection 'upgrade';
@@ -250,9 +250,9 @@ LibreChatユーザーが作成されない場合は、以下の2つの設定を�
 
 ## 使用方法
 
-1. スーパーユーザーでログイン（/lft/admin/login）
+1. スーパーユーザーでログイン（/admin/login）
 2. 講師アカウントを作成（プレフィックスを設定）
-3. 講師アカウントでログイン（/lft/login）し、生徒アカウントを作成
+3. 講師アカウントでログイン（/login）し、生徒アカウントを作成
 4. 必要に応じて生徒アカウントをリセット
 
 ## ライセンス

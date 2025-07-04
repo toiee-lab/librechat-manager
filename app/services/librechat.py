@@ -2,6 +2,7 @@ import subprocess
 import shlex
 import json
 import re
+from app.models.logs import SystemLog
 
 class LibreChatService:
     def __init__(self, librechat_root, container_name="LibreChat", work_dir="..", docker_path="/usr/bin/docker"):
@@ -22,11 +23,6 @@ class LibreChatService:
             'attempts': []
         }
         
-        # コマンドインジェクション対策のためにshlex.quoteを使用
-        command_parts = [
-            self.docker_path, "exec", "-i", self.container_name, "/bin/sh", "-c",
-            f"cd {self.work_dir} && echo y | npm run create-user {shlex.quote(email)} {shlex.quote(username)} {shlex.quote(name)} {shlex.quote(password)} --email-verified=true"
-        ]
         
         # すべての試行コマンドを用意
         commands = [
@@ -70,7 +66,13 @@ class LibreChatService:
                     log_data['success'] = True
                     log_data['successful_attempt'] = i+1
                     print(f"DEBUG - ユーザー作成成功 (試行 {i+1}): {email}")
-                    # ログ全体をJSONで出力（ファイル書き込みに置き換え可能）
+                    # システムログに成功を記録
+                    SystemLog.log_action(
+                        user_id=None,
+                        user_type='system',
+                        action='LibreChat ユーザー作成成功',
+                        details=json.dumps(log_data, ensure_ascii=False)
+                    )
                     print(f"LIBRECHAT_LOG: {json.dumps(log_data)}")
                     return result
             except Exception as e:
@@ -80,11 +82,24 @@ class LibreChatService:
                     'command': cmd,
                     'exception': str(e)
                 })
+                # システムログに例外を記録
+                SystemLog.log_action(
+                    user_id=None,
+                    user_type='system',
+                    action='LibreChat ユーザー作成エラー',
+                    details=f"試行 {i+1}: {str(e)}"
+                )
         
         # すべて失敗
         log_data['success'] = False
         print(f"DEBUG - すべての試行が失敗: {email}")
-        # ログ全体をJSONで出力（ファイル書き込みに置き換え可能）
+        # システムログに失敗を記録
+        SystemLog.log_action(
+            user_id=None,
+            user_type='system',
+            action='LibreChat ユーザー作成完全失敗',
+            details=json.dumps(log_data, ensure_ascii=False)
+        )
         print(f"LIBRECHAT_LOG: {json.dumps(log_data)}")
         
         # 最初のコマンドの結果を返す（互換性のため）
@@ -141,7 +156,13 @@ class LibreChatService:
                     log_data['success'] = True
                     log_data['successful_attempt'] = i+1
                     print(f"DEBUG - ユーザー削除成功 (試行 {i+1}): {email}")
-                    # ログ全体をJSONで出力（ファイル書き込みに置き換え可能）
+                    # システムログに成功を記録
+                    SystemLog.log_action(
+                        user_id=None,
+                        user_type='system',
+                        action='LibreChat ユーザー削除成功',
+                        details=json.dumps(log_data, ensure_ascii=False)
+                    )
                     print(f"LIBRECHAT_LOG: {json.dumps(log_data)}")
                     return result
             except Exception as e:
@@ -151,11 +172,24 @@ class LibreChatService:
                     'command': cmd,
                     'exception': str(e)
                 })
+                # システムログに例外を記録
+                SystemLog.log_action(
+                    user_id=None,
+                    user_type='system',
+                    action='LibreChat ユーザー削除エラー',
+                    details=f"試行 {i+1}: {str(e)}"
+                )
         
         # すべて失敗
         log_data['success'] = False
         print(f"DEBUG - すべての削除試行が失敗: {email}")
-        # ログ全体をJSONで出力（ファイル書き込みに置き換え可能）
+        # システムログに失敗を記録
+        SystemLog.log_action(
+            user_id=None,
+            user_type='system',
+            action='LibreChat ユーザー削除完全失敗',
+            details=json.dumps(log_data, ensure_ascii=False)
+        )
         print(f"LIBRECHAT_LOG: {json.dumps(log_data)}")
         
         # 最初のコマンドの結果を返す（互換性のため）
@@ -213,7 +247,13 @@ class LibreChatService:
                     log_data['successful_attempt'] = i+1
                     log_data['users_count'] = len(users)
                     print(f"DEBUG - ユーザー一覧取得成功 (試行 {i+1}): {len(users)}件")
-                    # ログ全体をJSONで出力（ファイル書き込みに置き換え可能）
+                    # システムログに成功を記録
+                    SystemLog.log_action(
+                        user_id=None,
+                        user_type='system',
+                        action='LibreChat ユーザー一覧取得成功',
+                        details=json.dumps(log_data, ensure_ascii=False)
+                    )
                     print(f"LIBRECHAT_LOG: {json.dumps(log_data)}")
                     return users
             except Exception as e:
@@ -223,12 +263,25 @@ class LibreChatService:
                     'command': cmd,
                     'exception': str(e)
                 })
+                # システムログに例外を記録
+                SystemLog.log_action(
+                    user_id=None,
+                    user_type='system',
+                    action='LibreChat ユーザー一覧取得エラー',
+                    details=f"試行 {i+1}: {str(e)}"
+                )
         
         # すべて失敗
         log_data['success'] = False
         log_data['users_count'] = 0
         print(f"DEBUG - すべての一覧試行が失敗")
-        # ログ全体をJSONで出力（ファイル書き込みに置き換え可能）
+        # システムログに失敗を記録
+        SystemLog.log_action(
+            user_id=None,
+            user_type='system',
+            action='LibreChat ユーザー一覧取得完全失敗',
+            details=json.dumps(log_data, ensure_ascii=False)
+        )
         print(f"LIBRECHAT_LOG: {json.dumps(log_data)}")
         
         return []

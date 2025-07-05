@@ -471,6 +471,54 @@ def api_delete_user():
             'error': str(e)
         }), 500
 
+@super_user_bp.route('/api/logs/cleanup', methods=['POST'])
+@login_required
+@super_user_required
+def api_cleanup_logs():
+    try:
+        data = request.get_json() or {}
+        days = data.get('days', 30)  # デフォルト30日
+        
+        # 30日未満は安全のため拒否
+        if days < 30:
+            return jsonify({
+                'success': False,
+                'error': '削除対象は30日以上前のログのみです'
+            }), 400
+        
+        # ログ削除実行
+        deleted_count = SystemLog.delete_old_logs(days)
+        
+        # 削除操作をログに記録
+        SystemLog.log_action(
+            user_id=current_user.id,
+            user_type=UserType.SUPER_USER,
+            action='システムログ削除',
+            details=f"{days}日以上前のログを削除: {deleted_count}件",
+            ip_address=request.remote_addr
+        )
+        
+        return jsonify({
+            'success': True,
+            'message': f'{days}日以上前のログを{deleted_count}件削除しました',
+            'deleted_count': deleted_count
+        })
+        
+    except Exception as e:
+        # エラーログに記録
+        SystemLog.log_action(
+            user_id=current_user.id,
+            user_type=UserType.SUPER_USER,
+            action='システムログ削除エラー',
+            details=f"エラー: {str(e)}",
+            ip_address=request.remote_addr
+        )
+        
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
 @super_user_bp.route('/logs')
 @login_required
 @super_user_required

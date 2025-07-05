@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
+from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app, jsonify
 from flask_login import login_required, current_user
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, IntegerField, SubmitField
@@ -248,6 +248,169 @@ def delete_teacher(teacher_id):
 @super_user_required
 def user_management():
     return render_template('super_user/user_management.html')
+
+@super_user_bp.route('/api/users', methods=['GET'])
+@login_required
+@super_user_required
+def api_get_users():
+    try:
+        # LibreChatServiceを使用してユーザー一覧を取得
+        librechat_service = LibreChatService(
+            current_app.config['LIBRECHAT_ROOT'],
+            container_name=current_app.config['LIBRECHAT_CONTAINER'],
+            work_dir=current_app.config['LIBRECHAT_WORK_DIR'],
+            docker_path=current_app.config['DOCKER_PATH']
+        )
+        
+        users = librechat_service.list_users()
+        
+        # 講師別にグループ化
+        grouped_users = _group_users_by_teacher(users)
+        
+        # システムログに記録
+        SystemLog.log_action(
+            user_id=current_user.id,
+            user_type=UserType.SUPER_USER,
+            action='LibreChatユーザー一覧取得',
+            details=f"取得件数: {len(users)}件",
+            ip_address=request.remote_addr
+        )
+        
+        return jsonify({
+            'success': True,
+            'users': users,
+            'grouped_users': grouped_users,
+            'count': len(users)
+        })
+        
+    except Exception as e:
+        # エラーログに記録
+        SystemLog.log_action(
+            user_id=current_user.id,
+            user_type=UserType.SUPER_USER,
+            action='LibreChatユーザー一覧取得エラー',
+            details=f"エラー: {str(e)}",
+            ip_address=request.remote_addr
+        )
+        
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+def _group_users_by_teacher(users):
+    """ユーザーを講師別にグループ化する"""
+    # データベースから講師一覧を取得
+    teachers = Teacher.query.all()
+    teacher_prefixes = {teacher.prefix: teacher for teacher in teachers}
+    teacher_emails = {teacher.email: teacher for teacher in teachers}
+    
+    grouped = {
+        'teachers': {},
+        'others': []
+    }
+    
+    for user in users:
+        username = user.get('username', '')
+        email = user.get('email', '')
+        
+        # 講師アカウントかどうかをチェック
+        is_teacher = email in teacher_emails
+        user['is_teacher'] = is_teacher
+        
+        # プレフィックスを判定
+        matched_teacher = None
+        for prefix, teacher in teacher_prefixes.items():
+            # ユーザー名またはメールアドレスがプレフィックスで始まるかチェック
+            if username.startswith(prefix) or email.startswith(prefix):
+                matched_teacher = teacher
+                break
+        
+        if matched_teacher:
+            teacher_key = f"{matched_teacher.name} ({matched_teacher.prefix})"
+            if teacher_key not in grouped['teachers']:
+                grouped['teachers'][teacher_key] = {
+                    'teacher_info': {
+                        'id': matched_teacher.id,
+                        'name': matched_teacher.name,
+                        'prefix': matched_teacher.prefix,
+                        'email': matched_teacher.email
+                    },
+                    'users': []
+                }
+            grouped['teachers'][teacher_key]['users'].append(user)
+        else:
+            grouped['others'].append(user)
+    
+    return grouped
+
+@super_user_bp.route('/api/users/<path:email>', methods=['DELETE'])
+@login_required
+@super_user_required
+def api_delete_user(email):
+    try:
+        # まず講師アカウントかどうかをチェック
+        teacher = Teacher.query.filter_by(email=email).first()
+        if teacher:
+            return jsonify({
+                'success': False,
+                'error': '講師アカウントは削除できません'
+            }), 400
+        
+        # LibreChatServiceを使用してユーザーを削除
+        librechat_service = LibreChatService(
+            current_app.config['LIBRECHAT_ROOT'],
+            container_name=current_app.config['LIBRECHAT_CONTAINER'],
+            work_dir=current_app.config['LIBRECHAT_WORK_DIR'],
+            docker_path=current_app.config['DOCKER_PATH']
+        )
+        
+        result = librechat_service.delete_user(email)
+        
+        if result.returncode == 0:
+            # 成功時のログ記録
+            SystemLog.log_action(
+                user_id=current_user.id,
+                user_type=UserType.SUPER_USER,
+                action='LibreChatユーザー削除成功',
+                details=f"削除されたユーザー: {email}",
+                ip_address=request.remote_addr
+            )
+            
+            return jsonify({
+                'success': True,
+                'message': f'ユーザー「{email}」を削除しました'
+            })
+        else:
+            # 失敗時のログ記録
+            error_msg = result.stderr or 'Unknown error'
+            SystemLog.log_action(
+                user_id=current_user.id,
+                user_type=UserType.SUPER_USER,
+                action='LibreChatユーザー削除失敗',
+                details=f"削除対象: {email}, エラー: {error_msg}",
+                ip_address=request.remote_addr
+            )
+            
+            return jsonify({
+                'success': False,
+                'error': f'ユーザーの削除に失敗しました: {error_msg}'
+            }), 500
+        
+    except Exception as e:
+        # エラーログに記録
+        SystemLog.log_action(
+            user_id=current_user.id,
+            user_type=UserType.SUPER_USER,
+            action='LibreChatユーザー削除エラー',
+            details=f"削除対象: {email}, エラー: {str(e)}",
+            ip_address=request.remote_addr
+        )
+        
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
 @super_user_bp.route('/logs')
 @login_required

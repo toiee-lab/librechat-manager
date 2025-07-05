@@ -113,20 +113,191 @@ document.addEventListener('DOMContentLoaded', function() {
         initialMessage.classList.add('hidden');
         loadUsersBtn.disabled = true;
         
-        // 今は一覧取得機能は実装していないので、仮のメッセージを表示
-        setTimeout(() => {
+        // APIからユーザー一覧を取得
+        fetch('/admin/api/users', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
             loadingSection.classList.add('hidden');
-            userListSection.classList.remove('hidden');
             loadUsersBtn.disabled = false;
             
-            // 仮のメッセージを表示
-            document.getElementById('userList').innerHTML = `
+            if (data.success) {
+                userListSection.classList.remove('hidden');
+                displayGroupedUsers(data.grouped_users, data.count);
+            } else {
+                alert('ユーザー一覧の取得に失敗しました: ' + (data.error || '不明なエラー'));
+            }
+        })
+        .catch(error => {
+            loadingSection.classList.add('hidden');
+            loadUsersBtn.disabled = false;
+            alert('ユーザー一覧の取得に失敗しました: ' + error.message);
+        });
+    });
+    
+    // グループ化されたユーザー一覧を表示する関数
+    function displayGroupedUsers(groupedUsers, totalCount) {
+        const userList = document.getElementById('userList');
+        
+        if (totalCount === 0) {
+            userList.innerHTML = `
                 <div class="text-center py-8 text-secondary">
-                    <p>ユーザー一覧機能は今後実装予定です。</p>
+                    <p>ユーザーが見つかりませんでした。</p>
                 </div>
             `;
-        }, 2000);
-    });
+            return;
+        }
+        
+        let html = `
+            <div class="mb-6">
+                <h6 class="text-lg font-medium text-dark">取得されたユーザー (${totalCount}件)</h6>
+            </div>
+        `;
+        
+        // 講師別グループを表示
+        if (groupedUsers.teachers && Object.keys(groupedUsers.teachers).length > 0) {
+            Object.keys(groupedUsers.teachers).forEach(teacherKey => {
+                const teacherData = groupedUsers.teachers[teacherKey];
+                const teacherInfo = teacherData.teacher_info;
+                const users = teacherData.users;
+                
+                html += `
+                    <div class="mb-6 bg-white border border-subtle rounded-lg overflow-hidden">
+                        <div class="bg-blue-50 border-b border-subtle p-4">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h6 class="font-medium text-dark">${teacherInfo.name} (${teacherInfo.prefix})</h6>
+                                    <div class="text-sm text-secondary">
+                                        Email: ${teacherInfo.email} | ユーザー数: ${users.length}件
+                                    </div>
+                                </div>
+                                <div class="text-sm text-primary font-medium">
+                                    講師
+                                </div>
+                            </div>
+                        </div>
+                        <div class="divide-y divide-subtle">
+                `;
+                
+                users.forEach(user => {
+                    html += `
+                        <div class="p-4">
+                            <div class="flex items-center justify-between">
+                                <div class="flex-1">
+                                    <div class="font-medium text-dark">${user.name || 'N/A'}</div>
+                                    <div class="text-sm text-secondary">
+                                        <span class="mr-4">Email: ${user.email || 'N/A'}</span>
+                                        <span class="mr-4">Username: ${user.username || 'N/A'}</span>
+                                        <span>ID: ${user.id || 'N/A'}</span>
+                                    </div>
+                                    ${user.created ? `<div class="text-xs text-secondary mt-1">作成日: ${user.created}</div>` : ''}
+                                </div>
+                                <div class="ml-4">
+                                    ${user.is_teacher 
+                                        ? '<span class="text-blue-600 font-medium px-3 py-1 text-sm">講師アカウント</span>'
+                                        : `<button class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 transition duration-200"
+                                                  onclick="deleteUser('${user.email}', '${user.name}')">
+                                              削除
+                                          </button>`
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+            });
+        }
+        
+        // その他のユーザーを表示
+        if (groupedUsers.others && groupedUsers.others.length > 0) {
+            html += `
+                <div class="mb-6 bg-white border border-subtle rounded-lg overflow-hidden">
+                    <div class="bg-gray-50 border-b border-subtle p-4">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h6 class="font-medium text-dark">その他のユーザー</h6>
+                                <div class="text-sm text-secondary">
+                                    講師に所属していないユーザー | ユーザー数: ${groupedUsers.others.length}件
+                                </div>
+                            </div>
+                            <div class="text-sm text-gray-600 font-medium">
+                                その他
+                            </div>
+                        </div>
+                    </div>
+                    <div class="divide-y divide-subtle">
+            `;
+            
+            groupedUsers.others.forEach(user => {
+                html += `
+                    <div class="p-4">
+                        <div class="flex items-center justify-between">
+                            <div class="flex-1">
+                                <div class="font-medium text-dark">${user.name || 'N/A'}</div>
+                                <div class="text-sm text-secondary">
+                                    <span class="mr-4">Email: ${user.email || 'N/A'}</span>
+                                    <span class="mr-4">Username: ${user.username || 'N/A'}</span>
+                                    <span>ID: ${user.id || 'N/A'}</span>
+                                </div>
+                                ${user.created ? `<div class="text-xs text-secondary mt-1">作成日: ${user.created}</div>` : ''}
+                            </div>
+                            <div class="ml-4">
+                                ${user.is_teacher 
+                                    ? '<span class="text-blue-600 font-medium px-3 py-1 text-sm">講師アカウント</span>'
+                                    : `<button class="bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 transition duration-200"
+                                              onclick="deleteUser('${user.email}', '${user.name}')">
+                                          削除
+                                      </button>`
+                                }
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += `
+                    </div>
+                </div>
+            `;
+        }
+        
+        userList.innerHTML = html;
+    }
+    
+    // ユーザー削除機能
+    window.deleteUser = function(email, name) {
+        if (confirm(`ユーザー「${name}」(${email})を削除しますか？\n\nこの操作は取り消すことができません。`)) {
+            // 削除API呼び出し
+            fetch(`/admin/api/users/${encodeURIComponent(email)}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.message);
+                    // ユーザー一覧を再取得
+                    loadUsersBtn.click();
+                } else {
+                    alert('ユーザーの削除に失敗しました: ' + (data.error || '不明なエラー'));
+                }
+            })
+            .catch(error => {
+                alert('ユーザーの削除に失敗しました: ' + error.message);
+            });
+        }
+    };
     
     // ユーザー追加ボタン
     addUserBtn.addEventListener('click', function() {

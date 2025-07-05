@@ -90,7 +90,8 @@ def bulk_create_students():
         librechat = LibreChatService(
             current_app.config['LIBRECHAT_ROOT'],
             container_name=current_app.config['LIBRECHAT_CONTAINER'],
-            work_dir=current_app.config['LIBRECHAT_WORK_DIR']
+            work_dir=current_app.config['LIBRECHAT_WORK_DIR'],
+            docker_path=current_app.config['DOCKER_PATH']
         )
         
         # 既存の学生数をチェック
@@ -104,7 +105,7 @@ def bulk_create_students():
             # 連番形式のメールアドレスとユーザー名を生成
             email = f"{prefix}{i:02d}@toiee.jp"
             username = f"{prefix}{i:02d}"
-            name = f"Student {i:02d}"
+            name = f"{prefix}{i:02d}"
             
             # 各ユーザーごとに個別のランダムパスワードを生成
             password = common_password or generate_password()
@@ -163,7 +164,8 @@ def reset_students():
         librechat = LibreChatService(
             current_app.config['LIBRECHAT_ROOT'],
             container_name=current_app.config['LIBRECHAT_CONTAINER'],
-            work_dir=current_app.config['LIBRECHAT_WORK_DIR']
+            work_dir=current_app.config['LIBRECHAT_WORK_DIR'],
+            docker_path=current_app.config['DOCKER_PATH']
         )
         students = Student.query.filter_by(teacher_id=current_user.id).all()
         

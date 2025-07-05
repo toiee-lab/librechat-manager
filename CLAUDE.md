@@ -106,10 +106,17 @@ LibreChat User Management System (LFT) - A Flask web application for managing Li
 
 **重要**: `LibreChatService` の初期化時は必ず `docker_path=current_app.config['DOCKER_PATH']` を含めること。
 この設定がないと「No such file or directory」エラーが発生する。
+
+**本番環境での注意事項**:
+- 本番環境（Webアプリケーション）では TTY が利用できないため、`-it` オプションは使用してはいけない
+- `docker exec -it` を使用すると "the input device is not a TTY" エラーが発生する
+- 開発環境（対話的なターミナル）では `-it` オプションが動作するが、本番環境では削除が必要
+- `echo y |` で自動応答しているため、対話的オプション（`-it`）は不要
 ### ユーザーの追加
 
 ```bash
-DOCKER_PATH exec -it LIBRECHAT_CONTAINER /bin/sh -c "cd LIBRECHAT_WORK_DIR && echo y | npm run create-user <email> <username> <name> <password> --email-verified=true"
+# 本番環境対応版（-it オプションなし）
+DOCKER_PATH exec LIBRECHAT_CONTAINER /bin/sh -c "cd LIBRECHAT_WORK_DIR && echo y | npm run create-user <email> <username> <name> <password> --email-verified=true"
 ```
 
 **実行結果サンプル:**
@@ -127,7 +134,8 @@ User created successfully:
 ### ユーザーの削除
 
 ```bash
-DOCKER_PATH exec -it LIBRECHAT_CONTAINER /bin/sh -c "cd LIBRECHAT_WORK_DIR && echo y | npm run delete-user <email>"
+# 本番環境対応版（-it オプションなし）
+DOCKER_PATH exec LIBRECHAT_CONTAINER /bin/sh -c "cd LIBRECHAT_WORK_DIR && echo y | npm run delete-user <email>"
 ```
 
 **実行結果サンプル:**
@@ -140,7 +148,8 @@ User deleted successfully: student@example.com
 ### ユーザーの一覧
 
 ```bash
-DOCKER_PATH exec -it LIBRECHAT_CONTAINER /bin/sh -c "cd LIBRECHAT_WORK_DIR && npm run list-users"
+# 本番環境対応版（-it オプションなし）
+DOCKER_PATH exec LIBRECHAT_CONTAINER /bin/sh -c "cd LIBRECHAT_WORK_DIR && npm run list-users"
 ```
 
 **実行結果サンプル:**
@@ -156,7 +165,8 @@ ID                       | Email               | Username    | Name          | V
 ### ユーザーのパスワード変更
 
 ```bash
-DOCKER_PATH exec -it LIBRECHAT_CONTAINER /bin/sh -c "cd LIBRECHAT_WORK_DIR && npm run reset-password <email>"
+# 本番環境対応版（-it オプションなし）
+DOCKER_PATH exec LIBRECHAT_CONTAINER /bin/sh -c "cd LIBRECHAT_WORK_DIR && npm run reset-password <email>"
 ```
 
 **実行結果サンプル:**
@@ -166,3 +176,22 @@ Enter new password:
 Confirm new password: 
 Password reset successfully for user: student@example.com
 ```
+
+## トラブルシューティング
+
+### よくあるエラーと解決方法
+
+#### 1. TTY関連エラー
+**エラー**: `the input device is not a TTY`
+**原因**: 本番環境で `-it` オプションを使用している
+**解決**: `docker exec -it` を `docker exec` に変更（LibreChatServiceは既に対応済み）
+
+#### 2. Docker実行エラー
+**エラー**: `No such file or directory`
+**原因**: `DOCKER_PATH` 設定が間違っている
+**解決**: 環境変数 `DOCKER_PATH` を正しいパスに設定
+
+#### 3. LibreChatコンテナ接続エラー
+**エラー**: `No such container`
+**原因**: `LIBRECHAT_CONTAINER` 名が間違っている
+**解決**: `docker ps` でコンテナ名を確認し、環境変数を修正

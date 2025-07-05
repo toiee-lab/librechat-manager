@@ -15,7 +15,7 @@ class LibreChatService:
     
     def create_user(self, email, username, name, password):
         """ユーザーを作成する"""
-        cmd = f"{self.docker_path} exec -it {self.container_name} /bin/sh -c \"cd {self.work_dir} && echo y | npm run create-user {shlex.quote(email)} {shlex.quote(username)} {shlex.quote(name)} {shlex.quote(password)} --email-verified=true\""
+        cmd = f"{self.docker_path} exec {self.container_name} /bin/sh -c \"cd {self.work_dir} && echo y | npm run create-user {shlex.quote(email)} {shlex.quote(username)} {shlex.quote(name)} {shlex.quote(password)} --email-verified=true\""
         
         log_data: Dict[str, Any] = {
             'function': 'create_user',
@@ -78,7 +78,7 @@ class LibreChatService:
     
     def delete_user(self, email):
         """ユーザーを削除する"""
-        cmd = f"{self.docker_path} exec -it {self.container_name} /bin/sh -c \"cd {self.work_dir} && echo y | npm run delete-user {shlex.quote(email)}\""
+        cmd = f"{self.docker_path} exec {self.container_name} /bin/sh -c \"cd {self.work_dir} && echo y | npm run delete-user {shlex.quote(email)}\""
         
         log_data: Dict[str, Any] = {
             'function': 'delete_user',
@@ -139,7 +139,7 @@ class LibreChatService:
     
     def list_users(self):
         """ユーザー一覧を取得する"""
-        cmd = f"{self.docker_path} exec -it {self.container_name} /bin/sh -c \"cd {self.work_dir} && npm run list-users\""
+        cmd = f"{self.docker_path} exec {self.container_name} /bin/sh -c \"cd {self.work_dir} && npm run list-users\""
         
         log_data: Dict[str, Any] = {
             'function': 'list_users',

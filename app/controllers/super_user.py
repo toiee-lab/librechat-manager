@@ -5,7 +5,7 @@ from wtforms import StringField, PasswordField, IntegerField, SubmitField
 from wtforms.validators import DataRequired, Email, ValidationError, Length, Regexp
 from functools import wraps
 
-from app.models.user import SuperUser, Teacher, UserType
+from app.models.user import SuperUser, Teacher, Student, UserType
 from app.models.logs import SystemLog
 from app.models import db
 from app.services.librechat import LibreChatService
@@ -349,20 +349,12 @@ def _group_users_by_teacher(users):
 @super_user_required
 def api_delete_user():
     try:
-        print(f"DEBUG - Request content type: {request.content_type}")
-        print(f"DEBUG - Request data: {request.data}")
-        
         data = request.get_json()
-        print(f"DEBUG - Parsed JSON data: {data}")
         
         if not data or 'email' not in data:
             return jsonify({
                 'success': False,
-                'error': 'メールアドレスが指定されていません',
-                'debug_info': {
-                    'data': data,
-                    'content_type': request.content_type
-                }
+                'error': 'メールアドレスが指定されていません'
             }), 400
         
         email = data['email']
@@ -383,30 +375,72 @@ def api_delete_user():
             docker_path=current_app.config['DOCKER_PATH']
         )
         
+        # 対応する生徒レコードがあるかチェック
+        student = Student.query.filter_by(email=email).first()
+        student_info = None
+        if student:
+            student_info = {
+                'id': student.id,
+                'name': student.name,
+                'teacher_id': student.teacher_id,
+                'teacher_name': student.teacher.name if student.teacher else 'Unknown'
+            }
+        
         result = librechat_service.delete_user(email)
         
         if result.returncode == 0:
+            # LibreChat削除成功時、生徒レコードも削除
+            deleted_student_info = None
+            if student:
+                try:
+                    db.session.delete(student)
+                    db.session.commit()
+                    deleted_student_info = student_info
+                except Exception as e:
+                    # 生徒レコード削除に失敗した場合はロールバック
+                    db.session.rollback()
+                    SystemLog.log_action(
+                        user_id=current_user.id,
+                        user_type=UserType.SUPER_USER,
+                        action='生徒レコード削除エラー',
+                        details=f"LibreChat削除成功後の生徒レコード削除失敗: {email}, エラー: {str(e)}",
+                        ip_address=request.remote_addr
+                    )
+            
             # 成功時のログ記録
+            log_details = f"削除されたユーザー: {email}"
+            if deleted_student_info:
+                log_details += f", 生徒レコードも削除: ID={deleted_student_info['id']}, 名前={deleted_student_info['name']}, 講師={deleted_student_info['teacher_name']}"
+            
             SystemLog.log_action(
                 user_id=current_user.id,
                 user_type=UserType.SUPER_USER,
                 action='LibreChatユーザー削除成功',
-                details=f"削除されたユーザー: {email}",
+                details=log_details,
                 ip_address=request.remote_addr
             )
             
+            message = f'ユーザー「{email}」を削除しました'
+            if deleted_student_info:
+                message += f'（生徒レコード「{deleted_student_info["name"]}」も削除されました）'
+            
             return jsonify({
                 'success': True,
-                'message': f'ユーザー「{email}」を削除しました'
+                'message': message,
+                'deleted_student': deleted_student_info
             })
         else:
             # 失敗時のログ記録
             error_msg = result.stderr or 'Unknown error'
+            log_details = f"削除対象: {email}, エラー: {error_msg}"
+            if student_info:
+                log_details += f", 対応する生徒レコード: ID={student_info['id']}, 名前={student_info['name']}"
+            
             SystemLog.log_action(
                 user_id=current_user.id,
                 user_type=UserType.SUPER_USER,
                 action='LibreChatユーザー削除失敗',
-                details=f"削除対象: {email}, エラー: {error_msg}",
+                details=log_details,
                 ip_address=request.remote_addr
             )
             

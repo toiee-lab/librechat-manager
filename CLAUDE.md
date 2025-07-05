@@ -48,6 +48,7 @@ LibreChat User Management System (LFT) - A Flask web application for managing Li
 - Multiple command execution strategies for reliability
 - Configurable container names and paths via environment variables
 - Comprehensive error handling and logging
+- **IMPORTANT**: All LibreChatService initializations must include `docker_path` parameter
 
 ## Configuration
 - Environment variables in `.env` file (copy from `.env.example`)
@@ -88,6 +89,13 @@ LibreChat User Management System (LFT) - A Flask web application for managing Li
 - Type hints: Use for function parameters and return values
 - Variable names: Use snake_case for variables and functions
 
+## Student Account Naming Convention
+- Student accounts follow prefix-based naming: `{prefix}01`, `{prefix}02`, etc.
+- Email format: `{prefix}01@toiee.jp`
+- Username format: `{prefix}01`  
+- Display name format: `{prefix}01`
+- All three fields use the same prefix + number pattern for consistency
+
 ## Docker で動作する LibreChat のユーザーを操作するためのコマンド
 
 必ず、以下の形式を使うこと。これ以外の方法は、動かない。
@@ -95,6 +103,9 @@ LibreChat User Management System (LFT) - A Flask web application for managing Li
 - DOCKER_PATH: dockerコマンドのパス。環境変数に格納。
 - LIBRECHAT_CONTAINER: LibreChatが動作しているコンテナ名。環境変数に格納
 - LIBRECHAT_WORK_DIR: docker内で package.json がある場所（カレントディレクトリか、親ディレクトリ）。環境変数に格納
+
+**重要**: `LibreChatService` の初期化時は必ず `docker_path=current_app.config['DOCKER_PATH']` を含めること。
+この設定がないと「No such file or directory」エラーが発生する。
 ### ユーザーの追加
 
 ```bash

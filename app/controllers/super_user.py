@@ -344,11 +344,29 @@ def _group_users_by_teacher(users):
     
     return grouped
 
-@super_user_bp.route('/api/users/<path:email>', methods=['DELETE'])
+@super_user_bp.route('/api/users/delete', methods=['POST'])
 @login_required
 @super_user_required
-def api_delete_user(email):
+def api_delete_user():
     try:
+        print(f"DEBUG - Request content type: {request.content_type}")
+        print(f"DEBUG - Request data: {request.data}")
+        
+        data = request.get_json()
+        print(f"DEBUG - Parsed JSON data: {data}")
+        
+        if not data or 'email' not in data:
+            return jsonify({
+                'success': False,
+                'error': 'メールアドレスが指定されていません',
+                'debug_info': {
+                    'data': data,
+                    'content_type': request.content_type
+                }
+            }), 400
+        
+        email = data['email']
+        
         # まず講師アカウントかどうかをチェック
         teacher = Teacher.query.filter_by(email=email).first()
         if teacher:
@@ -399,11 +417,18 @@ def api_delete_user(email):
         
     except Exception as e:
         # エラーログに記録
+        email_for_log = 'Unknown'
+        try:
+            data = request.get_json() or {}
+            email_for_log = data.get('email', 'Unknown')
+        except:
+            pass
+            
         SystemLog.log_action(
             user_id=current_user.id,
             user_type=UserType.SUPER_USER,
             action='LibreChatユーザー削除エラー',
-            details=f"削除対象: {email}, エラー: {str(e)}",
+            details=f"削除対象: {email_for_log}, エラー: {str(e)}",
             ip_address=request.remote_addr
         )
         

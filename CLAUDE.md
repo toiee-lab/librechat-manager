@@ -12,18 +12,18 @@ LibreChat User Management System (LFT) - A Flask web application for managing Li
 - Production server: `gunicorn -w 4 -b 127.0.0.1:8000 "run:app"`
 - Install dependencies: `pip install -r requirements.txt`
 - Activate virtual environment: `source venv/bin/activate` (Unix) or `venv\Scripts\activate` (Windows)
-- Run tests: `python -m pytest`
-- Single test: `python -m pytest tests/path/to/test.py::test_function_name`
+- Interactive LibreChat testing: `python test_librechat.py`
+- Run tests: `python -m pytest` (Note: No formal unit tests exist currently)
 
 ## Architecture Overview
 
 ### Application Structure
 - **Flask App Factory**: App initialization in `app/__init__.py`
-- **Blueprint Architecture**: Routes organized by functionality
-  - `auth.py`: Authentication routes
-  - `super_user.py`: Admin functionality
-  - `teacher.py`: Teacher functionality
-  - `system.py`: System management
+- **Controller Architecture**: Routes organized by functionality in `app/controllers/`
+  - `auth.py`: Authentication routes for both admin and teacher login
+  - `super_user.py`: Admin functionality (SuperUser management)
+  - `teacher.py`: Teacher functionality (Student management)
+  - `system.py`: System management and logging
 - **Service Layer**: Business logic separated in `app/services/`
 - **Models**: SQLAlchemy models in `app/models/`
 
@@ -33,9 +33,10 @@ LibreChat User Management System (LFT) - A Flask web application for managing Li
 - **Student**: End users (managed by teachers)
 
 ### Key Components
-- **LibreChatService**: Handles Docker command execution for LibreChat integration
-- **CustomUserMixin**: Extended Flask-Login UserMixin for role-based authentication
-- **SystemLog**: Comprehensive audit logging for all operations
+- **LibreChatService**: Handles Docker command execution for LibreChat integration with comprehensive error handling and logging
+- **CustomUserMixin**: Extended Flask-Login UserMixin with sophisticated user loading using prefixed IDs (S_ for SuperUser, T_ for Teacher)
+- **SystemLog**: Comprehensive audit logging for all operations with JSON details
+- **Role-based Authorization**: Custom decorators `@super_user_required` and `@teacher_required` using isinstance() checks
 
 ### Database Models
 - Uses SQLAlchemy ORM with SQLite3
@@ -50,8 +51,10 @@ LibreChat User Management System (LFT) - A Flask web application for managing Li
 
 ## Configuration
 - Environment variables in `.env` file (copy from `.env.example`)
-- Key settings: `LIBRECHAT_ROOT`, `LIBRECHAT_CONTAINER`, `DOCKER_PATH`
+- Flask environment settings in `.flaskenv`
+- Key settings: `LIBRECHAT_ROOT`, `LIBRECHAT_CONTAINER`, `DOCKER_PATH`, `LIBRECHAT_WORK_DIR`
 - Supports subpath deployment with `APPLICATION_ROOT`
+- Configuration class in `config.py` handles multiple environments
 
 ## Security Features
 - Password hashing with Werkzeug
@@ -65,6 +68,12 @@ LibreChat User Management System (LFT) - A Flask web application for managing Li
 - Jinja2 templates with responsive design
 - Custom CSS in `app/static/css/style.css`
 
+## Testing Strategy
+- **Interactive Testing**: Use `test_librechat.py` for LibreChat integration testing
+- **Manual Testing**: Web interface testing through browser
+- **No Unit Tests**: Current codebase lacks formal unit test suite
+- **LibreChat Integration**: All Docker commands tested through interactive script
+
 ## Code Style Guidelines
 - Python: Follow PEP 8 guidelines
 - Indentation: 4 spaces
@@ -72,9 +81,9 @@ LibreChat User Management System (LFT) - A Flask web application for managing Li
 - Quotes: Single quotes preferred
 - Docstrings: Use triple double quotes
 - Imports: Group stdlib, third-party, and local imports
-- Flask: Use Blueprint architecture
+- Flask: Use Controller architecture (not Blueprint)
 - Models: Use SQLAlchemy ORM patterns
-- Error handling: Use try/except with appropriate error logging
+- Error handling: Use try/except with SystemLog logging
 - Templates: Follow Jinja2 conventions
 - Type hints: Use for function parameters and return values
 - Variable names: Use snake_case for variables and functions
@@ -83,13 +92,13 @@ LibreChat User Management System (LFT) - A Flask web application for managing Li
 
 必ず、以下の形式を使うこと。これ以外の方法は、動かない。
 
-- DOCKER_PAHT: dockerコマンドのパス。環境変数に格納。
+- DOCKER_PATH: dockerコマンドのパス。環境変数に格納。
 - LIBRECHAT_CONTAINER: LibreChatが動作しているコンテナ名。環境変数に格納
 - LIBRECHAT_WORK_DIR: docker内で package.json がある場所（カレントディレクトリか、親ディレクトリ）。環境変数に格納
 ### ユーザーの追加
 
 ```bash
-DOCKER_PATH_PATH exec -it LIBRECHAT_CONTAINER /bin/sh -c "cd LIBRECHAT_WORK_DIR && echo y | npm run create-user <email> <username> <name> <password> --email-verified=true"
+DOCKER_PATH exec -it LIBRECHAT_CONTAINER /bin/sh -c "cd LIBRECHAT_WORK_DIR && echo y | npm run create-user <email> <username> <name> <password> --email-verified=true"
 ```
 
 **実行結果サンプル:**

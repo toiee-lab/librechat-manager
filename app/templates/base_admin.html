@@ -93,6 +93,7 @@
                         {% if current_user.user_type == 'super_user' %}
                             <a href="{{ url_for('super_user.dashboard') }}" class="text-dark hover:text-primary px-3 py-2 transition-colors duration-200">ダッシュボード</a>
                             <a href="{{ url_for('super_user.list_teachers') }}" class="text-dark hover:text-primary px-3 py-2 transition-colors duration-200">講師管理</a>
+                            <a href="{{ url_for('super_user.user_management') }}" class="text-dark hover:text-primary px-3 py-2 transition-colors duration-200">ユーザー管理</a>
                             <a href="{{ url_for('system.system_logs') }}" class="text-dark hover:text-primary px-3 py-2 transition-colors duration-200">システムログ</a>
                         {% elif current_user.user_type == 'teacher' %}
                             <a href="{{ url_for('teacher.dashboard') }}" class="text-dark hover:text-primary px-3 py-2 transition-colors duration-200">ダッシュボード</a>
@@ -117,6 +118,7 @@
                     {% if current_user.user_type == 'super_user' %}
                         <a href="{{ url_for('super_user.dashboard') }}" class="block text-dark hover:text-primary px-3 py-2 my-1 transition-colors duration-200">ダッシュボード</a>
                         <a href="{{ url_for('super_user.list_teachers') }}" class="block text-dark hover:text-primary px-3 py-2 my-1 transition-colors duration-200">講師管理</a>
+                        <a href="{{ url_for('super_user.user_management') }}" class="block text-dark hover:text-primary px-3 py-2 my-1 transition-colors duration-200">ユーザー管理</a>
                         <a href="{{ url_for('system.system_logs') }}" class="block text-dark hover:text-primary px-3 py-2 my-1 transition-colors duration-200">システムログ</a>
                     {% elif current_user.user_type == 'teacher' %}
                         <a href="{{ url_for('teacher.dashboard') }}" class="block text-dark hover:text-primary px-3 py-2 my-1 transition-colors duration-200">ダッシュボード</a>

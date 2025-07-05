@@ -243,6 +243,12 @@ def delete_teacher(teacher_id):
     flash(f'講師アカウント「{teacher_name}」と関連する生徒アカウント（{len(deleted_students)}名）を削除しました', 'success')
     return redirect(url_for('super_user.list_teachers'))
 
+@super_user_bp.route('/users')
+@login_required
+@super_user_required
+def user_management():
+    return render_template('super_user/user_management.html')
+
 @super_user_bp.route('/logs')
 @login_required
 @super_user_required

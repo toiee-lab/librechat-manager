@@ -1,0 +1,161 @@
+{% extends "base_admin.html" %}
+
+{% block title %}ユーザー管理 | LibreChatユーザー管理{% endblock %}
+
+{% block content %}
+<div>
+    <h2 class="text-2xl font-medium text-dark mb-6">LibreChatユーザー管理</h2>
+    
+    <div class="bg-light border border-subtle p-5 mb-8 rounded-lg">
+        <h4 class="font-medium text-lg mb-2 text-dark">ユーザー管理</h4>
+        <p class="text-secondary">LibreChatに登録されているユーザーの一覧表示・管理を行います。</p>
+    </div>
+    
+    <div class="card">
+        <div class="p-6 border-b border-subtle">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                    <h5 class="text-dark font-medium text-lg">ユーザー一覧</h5>
+                </div>
+                <button id="loadUsersBtn" 
+                        class="bg-primary text-white font-medium py-2 px-4 rounded-full hover:bg-primary-dark transition duration-200 text-sm">
+                    ユーザー一覧を取得
+                </button>
+            </div>
+        </div>
+        
+        <div class="p-6">
+            <div id="loadingSection" class="hidden">
+                <div class="flex items-center justify-center py-8">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    <span class="ml-3 text-secondary">ユーザー一覧を取得中...</span>
+                </div>
+            </div>
+            
+            <div id="userListSection" class="hidden">
+                <div class="mb-6">
+                    <button id="addUserBtn" 
+                            class="bg-green-500 text-white font-medium py-2 px-4 rounded-full hover:bg-green-600 transition duration-200 text-sm">
+                        ユーザーを追加
+                    </button>
+                </div>
+                
+                <div id="userList">
+                    <!-- ユーザー一覧がここに表示されます -->
+                </div>
+            </div>
+            
+            <div id="initialMessage" class="text-center py-8 text-secondary">
+                上の「ユーザー一覧を取得」ボタンをクリックしてユーザー一覧を表示してください。
+            </div>
+        </div>
+    </div>
+    
+    <!-- ユーザー追加モーダル -->
+    <div id="addUserModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-lg bg-white">
+            <div class="mt-3 text-center">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">ユーザー追加</h3>
+                <form id="addUserForm">
+                    <div class="mb-4">
+                        <label for="userEmail" class="block text-sm font-medium text-gray-700 mb-1">メールアドレス</label>
+                        <input type="email" id="userEmail" name="email" required 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                    </div>
+                    <div class="mb-4">
+                        <label for="userUsername" class="block text-sm font-medium text-gray-700 mb-1">ユーザー名</label>
+                        <input type="text" id="userUsername" name="username" required 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                    </div>
+                    <div class="mb-4">
+                        <label for="userName" class="block text-sm font-medium text-gray-700 mb-1">表示名</label>
+                        <input type="text" id="userName" name="name" required 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                    </div>
+                    <div class="mb-6">
+                        <label for="userPassword" class="block text-sm font-medium text-gray-700 mb-1">パスワード</label>
+                        <input type="password" id="userPassword" name="password" required 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                    </div>
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" id="cancelAddUser" 
+                                class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 transition duration-200">
+                            キャンセル
+                        </button>
+                        <button type="submit" 
+                                class="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:bg-primary-dark transition duration-200">
+                            追加
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const loadUsersBtn = document.getElementById('loadUsersBtn');
+    const loadingSection = document.getElementById('loadingSection');
+    const userListSection = document.getElementById('userListSection');
+    const initialMessage = document.getElementById('initialMessage');
+    const addUserBtn = document.getElementById('addUserBtn');
+    const addUserModal = document.getElementById('addUserModal');
+    const addUserForm = document.getElementById('addUserForm');
+    const cancelAddUser = document.getElementById('cancelAddUser');
+    
+    // ユーザー一覧取得ボタン
+    loadUsersBtn.addEventListener('click', function() {
+        loadingSection.classList.remove('hidden');
+        initialMessage.classList.add('hidden');
+        loadUsersBtn.disabled = true;
+        
+        // 今は一覧取得機能は実装していないので、仮のメッセージを表示
+        setTimeout(() => {
+            loadingSection.classList.add('hidden');
+            userListSection.classList.remove('hidden');
+            loadUsersBtn.disabled = false;
+            
+            // 仮のメッセージを表示
+            document.getElementById('userList').innerHTML = `
+                <div class="text-center py-8 text-secondary">
+                    <p>ユーザー一覧機能は今後実装予定です。</p>
+                </div>
+            `;
+        }, 2000);
+    });
+    
+    // ユーザー追加ボタン
+    addUserBtn.addEventListener('click', function() {
+        addUserModal.classList.remove('hidden');
+    });
+    
+    // キャンセルボタン
+    cancelAddUser.addEventListener('click', function() {
+        addUserModal.classList.add('hidden');
+        addUserForm.reset();
+    });
+    
+    // モーダル外クリックで閉じる
+    addUserModal.addEventListener('click', function(e) {
+        if (e.target === addUserModal) {
+            addUserModal.classList.add('hidden');
+            addUserForm.reset();
+        }
+    });
+    
+    // フォーム送信
+    addUserForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // 今は追加機能は実装していないので、仮のメッセージを表示
+        alert('ユーザー追加機能は今後実装予定です。');
+        addUserModal.classList.add('hidden');
+        addUserForm.reset();
+    });
+});
+</script>
+{% endblock %}
